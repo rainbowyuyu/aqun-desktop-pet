@@ -1,0 +1,80 @@
+{
+  "name": "aqun-desktop-pet",
+  "version": "2.4.0",
+  "private": true,
+  "author": "rainbowyu",
+  "description": "阿群 3D 桌面模型 — 互动、提醒与工具",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rainbowyuyu/aqun-desktop-pet.git"
+  },
+  "homepage": "https://github.com/rainbowyuyu/aqun-desktop-pet",
+  "bugs": {
+    "url": "https://github.com/rainbowyuyu/aqun-desktop-pet/issues"
+  },
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"vite --port 5174 --strictPort\" \"wait-on http://localhost:5174 && electron .\"",
+    "build:renderer": "vite build",
+    "build:icon": "node scripts/generate-icon.cjs",
+    "start": "electron .",
+    "build:win": "node scripts/generate-icon.cjs && vite build && electron-builder --win --dir && node scripts/patch-exe-icon.cjs",
+    "build:installer": "node scripts/generate-icon.cjs && vite build && electron-builder --win && node scripts/patch-exe-icon.cjs",
+    "check-update": "node scripts/check-update.mjs",
+    "update:build": "powershell -ExecutionPolicy Bypass -File scripts/pull-and-build.ps1"
+  },
+  "dependencies": {
+    "gsap": "^3.12.7",
+    "koffi": "^2.16.2",
+    "node-global-key-listener": "^0.3.0",
+    "three": "^0.172.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^2.1.8",
+    "rcedit": "^4.0.1",
+    "vite": "^6.0.7",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.rainbowyu.aqun-pet",
+    "productName": "阿群模型",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "public/models",
+        "to": "models"
+      },
+      {
+        "from": "public/logo.png",
+        "to": "logo.png"
+      },
+      {
+        "from": "public/logo_rainbow.png",
+        "to": "logo_rainbow.png"
+      }
+    ],
+    "win": {
+      "target": [
+        "dir"
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "阿群模型"
+    }
+  }
+}

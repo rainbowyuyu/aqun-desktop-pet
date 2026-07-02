@@ -1,0 +1,41 @@
+# 依赖与构建产物
+node_modules/
+dist/
+release/
+build/icon.ico
+
+# 日志与本地环境
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+.cursor/
+*.swp
+*.suo
+*.user
+
+# Electron / 打包缓存
+.electron-builder-cache/
+*.asar
+
+# 开发探测用模型（勿提交）
+public/models/_*.glb
+public/models/_probe.glb
+public/models/ty.glb
+
+# 用户数据（若误放在项目目录）
+settings.json
+*.poses.local.json
+
+# 临时文件
+tmp/
+temp/
+.cache/

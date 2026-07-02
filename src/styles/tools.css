@@ -1,0 +1,1525 @@
+/* ── 小工具页 ── */
+.tools-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.tools-blessing {
+  position: relative;
+  padding: 14px 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(232, 152, 168, 0.14), rgba(152, 192, 232, 0.12));
+  border: 1px solid rgba(232, 152, 168, 0.22);
+}
+
+.tools-blessing-glow {
+  position: absolute;
+  inset: -40% -20%;
+  background: radial-gradient(circle at 30% 50%, rgba(232, 152, 168, 0.25), transparent 55%);
+  pointer-events: none;
+  animation: tools-glow 6s ease-in-out infinite;
+}
+
+@keyframes tools-glow {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(8%);
+  }
+}
+
+.tools-blessing-title {
+  position: relative;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #2a4038;
+  margin-bottom: 4px;
+}
+
+.tools-blessing-lines {
+  position: relative;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(58, 88, 72, 0.65);
+}
+
+.tools-subnav {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(58, 88, 72, 0.05);
+}
+
+.tools-subnav-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: rgba(58, 88, 72, 0.55);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    transform 0.15s ease,
+    box-shadow 0.22s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-subnav-btn span {
+  font-size: 13px;
+}
+
+.tools-subnav-btn:hover {
+  color: #3a5848;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.tools-subnav-btn.is-active {
+  color: #3a5848;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 252, 0.9));
+  box-shadow: 0 2px 10px rgba(232, 152, 168, 0.15);
+}
+
+.tools-section {
+  display: none;
+  animation: aq-page-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.tools-section.is-active {
+  display: block;
+}
+
+/* 日历 */
+.tools-calendar-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.cal-widget {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+}
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cal-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2a4038;
+}
+
+.cal-nav {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 9px;
+  background: rgba(58, 88, 72, 0.06);
+  color: #3a5848;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  -webkit-app-region: no-drag;
+}
+
+.cal-nav:hover {
+  background: rgba(232, 152, 168, 0.18);
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(58, 88, 72, 0.45);
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  min-height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #3a5848;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px 1px 4px;
+  line-height: 1.1;
+  transition:
+    background 0.18s ease,
+    transform 0.12s ease,
+    box-shadow 0.18s ease;
+  -webkit-app-region: no-drag;
+}
+
+.cal-day-num {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cal-day-label {
+  max-width: 100%;
+  font-size: 8px;
+  font-weight: 500;
+  color: rgba(58, 88, 72, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 1px;
+}
+
+.cal-day-label--solar {
+  color: #6a9878;
+  font-weight: 600;
+}
+
+.cal-day--solar:not(.cal-day--muted) {
+  background: rgba(240, 248, 242, 0.55);
+}
+
+.cal-day:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.cal-day--muted {
+  opacity: 0.38;
+  color: rgba(58, 88, 72, 0.45);
+}
+
+.cal-day--muted:hover {
+  opacity: 0.62;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.cal-day--today {
+  box-shadow: inset 0 0 0 1.5px rgba(152, 192, 232, 0.65);
+}
+
+.cal-day--selected {
+  background: linear-gradient(135deg, rgba(232, 152, 168, 0.28), rgba(152, 192, 232, 0.22));
+  box-shadow: 0 2px 8px rgba(232, 152, 168, 0.2);
+}
+
+.cal-day--birthday::after {
+  content: '🎂';
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 8px;
+  line-height: 1;
+}
+
+.cal-day--has-reminder::before {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: #e87898;
+}
+
+.cal-day-info {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cal-day-info-item {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  color: rgba(58, 88, 72, 0.82);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+}
+
+.cal-day-info-item--solar {
+  color: #4a7860;
+  background: rgba(232, 248, 236, 0.85);
+  border-color: rgba(106, 152, 120, 0.2);
+}
+
+.cal-day-info-item--festival {
+  color: #b85868;
+  background: rgba(255, 240, 242, 0.9);
+  border-color: rgba(232, 120, 152, 0.18);
+}
+
+.cal-day-info-item--off {
+  color: #c85868;
+  background: rgba(255, 232, 236, 0.85);
+}
+
+.cal-day-info-item--weekend {
+  color: #a86878;
+}
+
+.cal-day-info-item--work {
+  color: #4a6858;
+}
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 9px;
+  color: rgba(58, 88, 72, 0.5);
+}
+
+.cal-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot--today {
+  box-shadow: inset 0 0 0 1.5px #98c0e8;
+  background: transparent;
+}
+
+.dot--birthday {
+  background: #e898a8;
+}
+
+.dot--reminder {
+  background: #e87898;
+}
+
+/* 提醒面板 */
+.tools-reminder-panel {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tools-reminder-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tools-reminder-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(58, 88, 72, 0.45);
+  text-transform: uppercase;
+}
+
+.tools-reminder-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2a4038;
+  margin-top: 2px;
+}
+
+.tools-reminder-list {
+  list-style: none;
+  flex: 1;
+  min-height: 80px;
+  max-height: 140px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  scrollbar-width: thin;
+}
+
+.tools-reminder-empty {
+  font-size: 11px;
+  color: rgba(58, 88, 72, 0.45);
+  padding: 16px 4px;
+  text-align: center;
+  line-height: 1.55;
+}
+
+.tools-reminder-empty span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.38);
+}
+
+.tools-reminder-item {
+  position: relative;
+  padding: 10px 36px 10px 10px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(58, 88, 72, 0.06);
+  transition: opacity 0.2s ease;
+}
+
+.tools-reminder-item.is-off {
+  opacity: 0.45;
+}
+
+.tools-reminder-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tools-reminder-time {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e87898;
+  font-variant-numeric: tabular-nums;
+}
+
+.tools-reminder-repeat {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(152, 192, 232, 0.18);
+  color: rgba(58, 88, 72, 0.65);
+}
+
+.tools-reminder-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a5848;
+}
+
+.tools-reminder-note {
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.55);
+  margin-top: 2px;
+}
+
+.tools-reminder-actions {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  display: flex;
+  gap: 2px;
+}
+
+.tools-reminder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(58, 88, 72, 0.08);
+}
+
+.tools-form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.tools-input,
+.tools-select,
+.tools-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(58, 88, 72, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #3a5848;
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-input:focus,
+.tools-select:focus,
+.tools-textarea:focus {
+  border-color: rgba(232, 152, 168, 0.45);
+  box-shadow: 0 0 0 3px rgba(232, 152, 168, 0.12);
+}
+
+.tools-input--time {
+  flex: 1;
+}
+
+.tools-select {
+  flex: 1;
+  cursor: pointer;
+}
+
+.tools-textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.tools-primary-btn {
+  padding: 9px 12px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #3a5848, #5a7888);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.18s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-primary-btn:hover {
+  filter: brightness(1.05);
+}
+
+.tools-primary-btn:active {
+  transform: scale(0.98);
+}
+
+.tools-chip-btn,
+.tools-icon-btn {
+  padding: 6px 10px;
+  border: 1px solid rgba(58, 88, 72, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #3a5848;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-chip-btn:hover,
+.tools-icon-btn:hover {
+  background: rgba(232, 152, 168, 0.12);
+  border-color: rgba(232, 152, 168, 0.25);
+}
+
+.tools-icon-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tools-icon-btn--danger:hover {
+  background: rgba(200, 88, 104, 0.1);
+  border-color: rgba(200, 88, 104, 0.25);
+  color: #c85868;
+}
+
+/* 工具卡片 */
+.tools-utils-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tools-card {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  transition: box-shadow 0.22s ease;
+}
+
+.tools-card:hover {
+  box-shadow: 0 6px 18px rgba(232, 152, 168, 0.1);
+}
+
+.tools-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2a4038;
+  margin-bottom: 4px;
+}
+
+.tools-card-desc {
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.5);
+  margin-bottom: 8px;
+}
+
+.tools-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tools-pomo-ring {
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 10px 0;
+  background: linear-gradient(120deg, #3a5848, #5a7898, #e87898);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transition: transform 0.3s ease;
+}
+
+.tools-pomo-ring[data-mode='break'] {
+  background: linear-gradient(120deg, #5a9888, #98c0e8);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.tools-inline-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tools-inline-form .tools-input {
+  flex: 1;
+}
+
+.tools-stats-line,
+.tools-mono {
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.6);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 链接网格 */
+.tools-links-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tools-link-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px;
+  min-height: 72px;
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-link-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--link-accent, #e898a8);
+  opacity: 0.75;
+}
+
+.tools-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(20, 32, 48, 0.1);
+  border-color: rgba(232, 152, 168, 0.25);
+}
+
+.tools-link-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2a4038;
+  padding-left: 4px;
+}
+
+.tools-link-desc {
+  font-size: 9px;
+  color: rgba(58, 88, 72, 0.5);
+  padding-left: 4px;
+}
+
+.tools-link-arrow {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  color: rgba(58, 88, 72, 0.35);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.tools-link-card:hover .tools-link-arrow {
+  transform: translate(2px, -2px);
+  color: #e87898;
+}
+
+/* ── 小工具页（布局补充） ── */
+.tools-body {
+  min-height: 0;
+}
+
+.tools-cal-row {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.tools-cal-main {
+  min-width: 0;
+}
+
+.tools-reminder-side {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cal-hint {
+  margin-top: 8px;
+  font-size: 9px;
+  color: rgba(58, 88, 72, 0.45);
+  text-align: center;
+}
+
+.tools-ctx-menu {
+  position: fixed;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(58, 88, 72, 0.12);
+  box-shadow: 0 8px 24px rgba(20, 32, 48, 0.12);
+}
+
+.tools-ctx-menu button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #3a5848;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-ctx-menu button:hover {
+  background: rgba(232, 152, 168, 0.12);
+}
+
+.tools-links-hint {
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.5);
+  margin-bottom: 10px;
+}
+
+.tools-card--span2 {
+  grid-column: span 2;
+}
+
+.tools-textarea--sm {
+  min-height: 52px;
+}
+
+.tools-link-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  margin-bottom: 4px;
+  margin-left: 4px;
+}
+
+.tools-link-card {
+  padding-top: 10px;
+}
+
+.cal-day--weekend:not(.cal-day--muted) {
+  color: rgba(180, 100, 110, 0.85);
+  background: rgba(255, 248, 250, 0.35);
+}
+
+.cal-day--holiday:not(.cal-day--muted) {
+  color: #c85868;
+  background: rgba(255, 240, 242, 0.45);
+}
+
+.cal-day--workday:not(.cal-day--muted) {
+  color: #3a5848;
+}
+
+.cal-wd--off {
+  color: rgba(200, 120, 130, 0.65);
+}
+
+.dot--work {
+  background: #98c0a8;
+}
+
+.dot--weekend {
+  background: #e8a8b0;
+}
+
+.dot--holiday {
+  background: #e87898;
+}
+
+.dot--solar {
+  background: #78b898;
+}
+
+/* ── 工具启动器 ── */
+.tools-launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-height: min(520px, calc(100vh - 220px));
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+.tools-launcher-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tools-filter-input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid rgba(58, 88, 72, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #3a5848;
+  font-size: 11px;
+  outline: none;
+  -webkit-app-region: no-drag;
+}
+
+.tools-filter-input:focus {
+  border-color: rgba(232, 152, 168, 0.45);
+  box-shadow: 0 0 0 3px rgba(232, 152, 168, 0.12);
+}
+
+.tools-filter-count {
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.45);
+  white-space: nowrap;
+}
+
+.tools-launch-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px 18px;
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.22s ease, border-color 0.18s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-launch-tag {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 8px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(152, 192, 232, 0.2);
+  color: rgba(58, 88, 72, 0.55);
+  font-weight: 600;
+}
+
+.tools-launch-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(232, 152, 168, 0.12);
+  border-color: rgba(232, 152, 168, 0.25);
+}
+
+.tools-launch-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.tools-launch-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2a4038;
+}
+
+.tools-launch-desc {
+  font-size: 9px;
+  color: rgba(58, 88, 72, 0.45);
+  text-align: center;
+}
+
+.tools-detail {
+  animation: aq-page-in 0.28s ease;
+}
+
+.tools-back-btn {
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(58, 88, 72, 0.06);
+  color: #3a5848;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.tools-page-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #2a4038;
+  margin-bottom: 4px;
+}
+
+.tools-page-desc {
+  font-size: 11px;
+  color: rgba(58, 88, 72, 0.5);
+  margin-bottom: 12px;
+}
+
+.tools-page-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.tools-textarea--lg {
+  min-height: 120px;
+}
+
+.tools-mono--lg {
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.tools-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tools-stat-box {
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(58, 88, 72, 0.06);
+  text-align: center;
+}
+
+.tools-stat-box span {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: #3a5848;
+}
+
+.tools-stat-box label {
+  font-size: 9px;
+  color: rgba(58, 88, 72, 0.45);
+}
+
+.tools-pomo-mode {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(58, 88, 72, 0.5);
+  margin: 4px 0 8px;
+}
+
+.tools-pomo-presets {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* ── 新增工具样式 ── */
+.tools-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(58, 88, 72, 0.45);
+  margin: 12px 0 6px;
+  text-transform: uppercase;
+}
+
+.tools-hint-line {
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.45);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.tools-preview-box {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #3a5848;
+  min-height: 48px;
+  word-break: break-word;
+}
+
+.tools-preview-box--html {
+  font-size: 12px;
+}
+
+.tools-preview-box--html h1,
+.tools-preview-box--html h2,
+.tools-preview-box--html h3 {
+  font-size: 13px;
+  margin: 6px 0 4px;
+}
+
+.tools-preview-box--diff {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+}
+
+.tools-search-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tools-search-btn {
+  padding: 10px 8px;
+  border: 1px solid rgba(58, 88, 72, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #3a5848;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-search-btn:hover {
+  background: rgba(232, 152, 168, 0.12);
+  border-color: rgba(232, 152, 168, 0.3);
+  transform: translateY(-1px);
+}
+
+.tools-snip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.tools-snip-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-snip-btn:hover,
+.tools-snip-btn.is-copied {
+  border-color: rgba(232, 152, 168, 0.4);
+  background: rgba(255, 248, 252, 0.95);
+}
+
+.tools-snip-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2a4038;
+}
+
+.tools-snip-code {
+  font-size: 9px;
+  color: rgba(58, 88, 72, 0.55);
+  word-break: break-all;
+}
+
+.tools-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.tools-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tools-diff-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.diff-eq { color: rgba(58, 88, 72, 0.55); padding: 2px 0; }
+.diff-del { color: #c85868; background: rgba(200, 88, 104, 0.08); padding: 2px 4px; border-radius: 4px; }
+.diff-add { color: #3a8868; background: rgba(58, 136, 104, 0.08); padding: 2px 4px; border-radius: 4px; }
+
+.tools-table-editor {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+}
+
+.tools-cell-input {
+  padding: 6px 8px;
+  border: 1px solid rgba(58, 88, 72, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+  -webkit-app-region: no-drag;
+}
+
+.tools-inline-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.55);
+}
+
+.tools-input--xs {
+  width: 48px;
+  padding: 6px 8px;
+}
+
+.tools-inline-sep {
+  color: rgba(58, 88, 72, 0.35);
+  align-self: center;
+}
+
+.tools-stats-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.tools-color-picker {
+  width: 40px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid rgba(58, 88, 72, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.tools-color-swatch {
+  height: 40px;
+  border-radius: 10px;
+  margin: 8px 0;
+  border: 1px solid rgba(58, 88, 72, 0.08);
+}
+
+.tools-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: rgba(58, 88, 72, 0.65);
+  -webkit-app-region: no-drag;
+}
+
+.tools-site-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tools-site-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  -webkit-app-region: no-drag;
+}
+
+.tools-site-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(20, 32, 48, 0.1);
+  border-color: var(--link-accent, rgba(232, 152, 168, 0.3));
+}
+
+.tools-site-icon {
+  font-size: 24px;
+}
+
+.tools-site-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2a4038;
+  text-align: center;
+}
+
+.tools-site-desc {
+  font-size: 8px;
+  color: rgba(58, 88, 72, 0.45);
+}
+
+/* ── 独立日历侧边栏 ── */
+.cal-panel {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 12px;
+  align-items: start;
+  position: relative;
+}
+
+.cal-panel-side {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cal-panel-side-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cal-ctx-menu {
+  position: absolute;
+  z-index: 50;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(58, 88, 72, 0.12);
+  box-shadow: 0 8px 24px rgba(20, 32, 48, 0.14);
+  pointer-events: none;
+}
+
+.cal-ctx-menu.is-open {
+  display: flex;
+  pointer-events: auto;
+}
+
+.cal-ctx-menu[hidden] {
+  display: none !important;
+  pointer-events: none;
+}
+
+.cal-ctx-menu button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #3a5848;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.cal-ctx-menu button:hover {
+  background: rgba(232, 152, 168, 0.12);
+}
+
+@media (max-width: 860px) {
+  .tools-launcher-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cal-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .tools-site-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── 日历 · 天气 & 课表 ── */
+.cal-weather-bar {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(152, 192, 232, 0.12), rgba(168, 232, 200, 0.1));
+  border: 1px solid rgba(152, 192, 232, 0.18);
+}
+
+.cal-weather-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cal-weather-icon {
+  font-size: 18px;
+}
+
+.cal-weather-city {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.cal-weather-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cal-weather-now {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3a5848;
+  margin-bottom: 8px;
+}
+
+.cal-weather-forecast {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cal-forecast-chip {
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  color: rgba(58, 88, 72, 0.78);
+  border: 1px solid rgba(58, 88, 72, 0.06);
+}
+
+.cal-forecast-chip b {
+  font-weight: 800;
+  margin-right: 4px;
+}
+
+.cal-import-bar {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+}
+
+.cal-import-hint {
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(58, 88, 72, 0.55);
+  margin: 4px 0 10px;
+}
+
+.cal-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cal-import-clear {
+  color: rgba(200, 90, 90, 0.85);
+}
+
+.tools-reminder-item.is-class {
+  border-left: 3px solid rgba(152, 192, 232, 0.65);
+}
+
+.cal-day-info-item--weather {
+  color: rgba(88, 120, 160, 0.9);
+  font-weight: 600;
+}
+
+.tools-weather-now {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3a5848;
+  margin: 8px 0;
+}
+
+.tools-weather-days {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tools-weather-day {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.8fr;
+  gap: 8px;
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.tools-countdown-result {
+  font-size: 18px;
+  font-weight: 800;
+  color: #e87898;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.tools-todo-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tools-todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(58, 88, 72, 0.08);
+}
+
+.tools-todo-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  flex: 1;
+}
+
+.tools-todo-item.is-done span {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.tools-calc-display {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+.tools-calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.tools-calc-key {
+  padding: 12px 8px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.tools-calc-key:hover {
+  background: rgba(232, 152, 168, 0.15);
+}
+
+.tools-calc-key:active {
+  transform: scale(0.96);
+}

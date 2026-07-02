@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>骨骼姿势编辑器</title>
+    <link rel="icon" type="image/png" href="./logo_rainbow.png" />
+    <link rel="stylesheet" href="/src/styles/pose-editor.css" />
+  </head>
+  <body>
+    <div id="pe-root" class="pe-app">
+      <header class="pe-header">
+        <div class="pe-header-brand">
+          <img class="pe-logo" src="./logo_rainbow.png" alt="Rainbow 鱼" width="40" height="40" />
+          <div>
+            <h1>骨骼姿势编辑器</h1>
+            <p data-load-progress>正在初始化…</p>
+          </div>
+        </div>
+        <div class="pe-mode-switch" role="tablist" aria-label="编辑模式">
+          <button type="button" class="pe-mode-btn" data-mode="preview" role="tab">预览</button>
+          <button type="button" class="pe-mode-btn is-active" data-mode="edit" role="tab">编辑</button>
+        </div>
+        <div class="pe-header-actions">
+          <button type="button" class="pe-btn pe-btn--ghost" data-open-settings title="设置与快捷键">⚙ 设置</button>
+          <button type="button" class="pe-btn pe-btn--ghost" data-import-json>导入 JSON</button>
+          <input type="file" accept=".json,application/json" data-import-file hidden />
+          <button type="button" class="pe-btn pe-btn--ghost" data-export-json>导出 JSON</button>
+          <button type="button" class="pe-btn pe-btn--primary" data-apply-pet>应用到主窗口</button>
+        </div>
+      </header>
+
+      <div class="pe-body">
+        <aside class="pe-panel pe-panel--bones">
+          <section class="pe-section pe-model-section">
+            <h2>选择模型</h2>
+            <p class="pe-section-hint">绑骨模型可编辑骨骼，静态模型仅预览</p>
+            <div class="pe-model-list" data-model-list></div>
+            <p class="pe-rig-notice" data-rig-notice hidden></p>
+          </section>
+
+          <div class="pe-panel-head">
+            <h2>骨骼列表</h2>
+            <input type="search" class="pe-search" data-bone-search placeholder="搜索骨骼…" />
+          </div>
+          <div class="pe-bone-list" data-bone-list></div>
+        </aside>
+
+        <main class="pe-viewport-wrap">
+          <div class="pe-viewport-frame">
+            <div class="pe-viewport-header">
+              <span class="pe-viewport-title">3D 视口</span>
+              <span class="pe-viewport-mode" data-viewport-mode>编辑模式</span>
+            </div>
+            <div class="pe-viewport">
+              <aside class="pe-tool-rail" aria-label="变换工具">
+                <button type="button" class="pe-tool-btn" data-tool="select" title="选择 (Esc)" disabled>
+                  <span class="pe-tool-icon">◎</span>
+                  <span class="pe-tool-label">选择</span>
+                </button>
+                <button type="button" class="pe-tool-btn is-active" data-tool="translate" title="移动 (G)">
+                  <span class="pe-tool-icon">✥</span>
+                  <span class="pe-tool-label">移动</span>
+                </button>
+                <button type="button" class="pe-tool-btn" data-tool="rotate" title="旋转 (R)">
+                  <span class="pe-tool-icon">↻</span>
+                  <span class="pe-tool-label">旋转</span>
+                </button>
+              </aside>
+              <canvas id="pe-canvas"></canvas>
+              <div class="pe-viewport-toolbar" data-viewport-toolbar></div>
+            </div>
+          </div>
+        </main>
+
+        <aside class="pe-panel pe-panel--right">
+          <nav class="pe-panel-tabs" role="tablist" aria-label="属性面板">
+            <button type="button" class="pe-tab is-active" data-tab="bone" role="tab">骨骼</button>
+            <button type="button" class="pe-tab" data-tab="parts" role="tab">部件</button>
+            <button type="button" class="pe-tab" data-tab="poses" role="tab">姿势</button>
+            <button type="button" class="pe-tab" data-tab="trans" role="tab">过渡</button>
+          </nav>
+
+          <div class="pe-tab-panels">
+            <section class="pe-tab-panel is-active" data-tab-panel="bone">
+              <div class="pe-section">
+                <h2>变换</h2>
+                <p class="pe-bone-title" data-bone-name>—</p>
+                <p class="pe-bone-pos" data-bone-pos>世界坐标 —</p>
+                <label class="pe-lock">
+                  <input type="checkbox" data-bone-lock />
+                  <span>锁定此骨骼（过渡时不混合）</span>
+                </label>
+                <div class="pe-sliders pe-sliders--fine" data-bone-sliders>
+                  <p class="pe-sliders-hint">欧拉角微调（与视口 Gizmo 同步）</p>
+                  <label>X <input type="range" min="-180" max="180" step="0.5" value="0" data-rot-x /><span data-rot-x-val>0°</span></label>
+                  <label>Y <input type="range" min="-180" max="180" step="0.5" value="0" data-rot-y /><span data-rot-y-val>0°</span></label>
+                  <label>Z <input type="range" min="-180" max="180" step="0.5" value="0" data-rot-z /><span data-rot-z-val>0°</span></label>
+                </div>
+                <button type="button" class="pe-btn pe-btn--ghost pe-btn--block" data-reset-bone>重置此骨骼</button>
+              </div>
+            </section>
+
+            <section class="pe-tab-panel" data-tab-panel="parts" hidden>
+              <div class="pe-section">
+                <h2>模型部件</h2>
+                <p class="pe-section-hint">按头 / 身 / 其他分组显示网格</p>
+                <div class="pe-part-toggles">
+                  <label class="pe-toggle"><input type="checkbox" data-part-head checked /> 头部网格</label>
+                  <label class="pe-toggle"><input type="checkbox" data-part-body checked /> 身体网格</label>
+                  <label class="pe-toggle"><input type="checkbox" data-part-other checked /> 其他网格</label>
+                </div>
+                <details class="pe-mesh-details">
+                  <summary>单个网格列表</summary>
+                  <div class="pe-mesh-list" data-mesh-list></div>
+                </details>
+              </div>
+            </section>
+
+            <section class="pe-tab-panel" data-tab-panel="poses" hidden>
+              <div class="pe-section">
+                <div class="pe-section-head">
+                  <h2>姿势库</h2>
+                  <div class="pe-inline-btns">
+                    <button type="button" class="pe-btn pe-btn--sm" data-pose-new>新建</button>
+                    <button type="button" class="pe-btn pe-btn--sm" data-pose-dup>复制</button>
+                    <button type="button" class="pe-btn pe-btn--sm pe-btn--danger" data-pose-del>删</button>
+                  </div>
+                </div>
+                <div class="pe-pose-list" data-pose-list></div>
+                <label class="pe-field">名称 <input type="text" data-pose-name /></label>
+                <button type="button" class="pe-btn pe-btn--primary pe-btn--block" data-pose-save>保存当前姿势</button>
+                <div class="pe-assign">
+                  <label>待机姿势 <select data-assign-rest></select></label>
+                  <label>打字姿势 <select data-assign-typing></select></label>
+                </div>
+              </div>
+            </section>
+
+            <section class="pe-tab-panel" data-tab-panel="trans" hidden>
+              <div class="pe-section">
+                <h2>姿势过渡</h2>
+                <div class="pe-trans-grid">
+                  <label>从 <select data-trans-from></select></label>
+                  <label>到 <select data-trans-to></select></label>
+                  <label>时长(s) <input type="number" min="0.05" max="5" step="0.05" value="0.35" data-trans-dur /></label>
+                  <label>缓动
+                    <select data-trans-ease>
+                      <option value="sine.inOut">sine.inOut</option>
+                      <option value="linear">linear</option>
+                      <option value="quad.out">quad.out</option>
+                      <option value="back.out">back.out</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="pe-inline-btns">
+                  <button type="button" class="pe-btn pe-btn--sm" data-trans-preview>预览过渡</button>
+                  <button type="button" class="pe-btn pe-btn--sm" data-trans-save>保存过渡</button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="pe-section pe-section--footer">
+            <button type="button" class="pe-btn pe-btn--ghost pe-btn--block" data-reset-all>全部重置为 Bind</button>
+            <p class="pe-status" data-editor-status></p>
+          </section>
+        </aside>
+      </div>
+
+      <!-- 设置面板 -->
+      <div class="pe-settings-backdrop" data-settings-backdrop hidden>
+        <div class="pe-settings-panel" role="dialog" aria-labelledby="pe-settings-title">
+          <header class="pe-settings-header">
+            <h2 id="pe-settings-title">编辑器设置</h2>
+            <button type="button" class="pe-settings-close" data-close-settings aria-label="关闭">×</button>
+          </header>
+          <div class="pe-settings-body">
+            <section class="pe-settings-section">
+              <h3>显示</h3>
+              <div class="pe-part-toggles">
+                <label class="pe-toggle"><input type="checkbox" data-opt-skeleton checked /> 显示骨架线</label>
+                <label class="pe-toggle"><input type="checkbox" data-opt-bone-boxes checked /> 显示骨骼框选</label>
+              </div>
+            </section>
+            <section class="pe-settings-section">
+              <h3>快捷键</h3>
+              <div class="pe-shortcut-list" data-shortcut-list></div>
+              <details class="pe-mesh-details">
+                <summary>自定义快捷键</summary>
+                <div class="pe-shortcut-form" data-shortcut-form></div>
+              </details>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/poseEditor.js"></script>
+  </body>
+</html>
+

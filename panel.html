@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>阿群 · 控制中心</title>
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <link rel="stylesheet" href="/src/styles/panel.css" />
+    <link rel="stylesheet" href="/src/styles/tools.css" />
+  </head>
+  <body data-app="panel">
+    <div id="app">
+      <div id="settings-panel">
+        <div class="aq-shell">
+          <aside class="aq-nav" aria-label="设置导航">
+            <div class="aq-nav-brand">
+              <img src="./logo.png" alt="" class="aq-nav-logo" />
+              <span class="aq-nav-title">阿群</span>
+            </div>
+            <nav class="aq-nav-list">
+              <p class="aq-nav-group-label">功能</p>
+              <button type="button" class="aq-nav-item is-active" data-tab="about">
+                <span class="aq-nav-icon" aria-hidden="true">🏠</span>
+                <span>首页</span>
+              </button>
+              <button type="button" class="aq-nav-item" data-tab="calendar">
+                <span class="aq-nav-icon" aria-hidden="true">📅</span>
+                <span>日历</span>
+              </button>
+              <button type="button" class="aq-nav-item" data-tab="sites">
+                <span class="aq-nav-icon" aria-hidden="true">🔗</span>
+                <span>站点</span>
+              </button>
+              <button type="button" class="aq-nav-item" data-tab="tools">
+                <span class="aq-nav-icon" aria-hidden="true">🧰</span>
+                <span>工具</span>
+              </button>
+              <p class="aq-nav-group-label">设置</p>
+              <button type="button" class="aq-nav-item" data-tab="appearance">
+                <span class="aq-nav-icon" aria-hidden="true">◐</span>
+                <span>模型</span>
+              </button>
+              <button type="button" class="aq-nav-item" data-tab="interaction">
+                <span class="aq-nav-icon" aria-hidden="true">◎</span>
+                <span>互动</span>
+              </button>
+              <button type="button" class="aq-nav-item" data-tab="system">
+                <span class="aq-nav-icon" aria-hidden="true">▢</span>
+                <span>窗口</span>
+              </button>
+              <button type="button" class="aq-nav-item" data-tab="advanced">
+                <span class="aq-nav-icon" aria-hidden="true">⚙</span>
+                <span>高级</span>
+              </button>
+            </nav>
+            <div class="aq-nav-footer">
+              <button type="button" class="aq-version" data-show-changelog="version" data-app-version>v2.4.0 · 2026-07-02</button>
+            </div>
+          </aside>
+
+          <main class="aq-main">
+            <header class="aq-header">
+              <div class="aq-header-text">
+                <h1 class="aq-header-title" data-header-title>首页</h1>
+                <p class="aq-header-sub" data-header-sub>快速了解阿群 · 一键进入常用功能</p>
+              </div>
+              <div class="aq-win-controls">
+                <button type="button" class="aq-win-btn" data-win-min aria-label="最小化">
+                  <span aria-hidden="true">─</span>
+                </button>
+                <button id="settings-close" type="button" class="aq-win-btn aq-win-btn--close" aria-label="关闭">
+                  <span aria-hidden="true">×</span>
+                </button>
+              </div>
+            </header>
+
+            <div class="aq-pages">
+              <section class="aq-page is-active" data-page="about">
+                <div class="aq-about-hero">
+                  <div class="aq-about-avatar">
+                    <img src="./logo.png" alt="阿群" />
+                    <div class="aq-about-ring"></div>
+                  </div>
+                  <div class="aq-about-meta">
+                    <h2 class="aq-about-name">阿群</h2>
+                    <p class="aq-about-tag">7 月 4 日 · 桌面模型</p>
+                    <div class="aq-rainbow-bar" aria-hidden="true"></div>
+                  </div>
+                </div>
+                <p class="aq-about-bio">
+                  阿群是一枚住在桌面上的 3D 小伙伴：眼神会跟着鼠标转，键盘敲下去她也会有所回应。日历、课表、天气、常用站点、小工具……都藏在这个控制中心里。
+                </p>
+                <div class="aq-quick-grid">
+                  <button type="button" class="aq-quick-card" data-goto-tab="appearance">
+                    <span class="aq-quick-icon">◐</span>
+                    <span class="aq-quick-body">
+                      <strong>换模型</strong>
+                      <small>外观 · 大小 · 透明度</small>
+                    </span>
+                  </button>
+                  <button type="button" class="aq-quick-card" data-goto-tab="interaction">
+                    <span class="aq-quick-icon">◎</span>
+                    <span class="aq-quick-body">
+                      <strong>互动反馈</strong>
+                      <small>眼神 · 键盘 · 气泡</small>
+                    </span>
+                  </button>
+                  <button type="button" class="aq-quick-card" data-goto-tab="system">
+                    <span class="aq-quick-icon">▢</span>
+                    <span class="aq-quick-body">
+                      <strong>窗口行为</strong>
+                      <small>置顶 · 穿透 · 锁定</small>
+                    </span>
+                  </button>
+                  <button type="button" class="aq-quick-card" data-goto-tab="calendar">
+                    <span class="aq-quick-icon">📅</span>
+                    <span class="aq-quick-body">
+                      <strong>日历提醒</strong>
+                      <small>课表 · 天气 · 日程</small>
+                    </span>
+                  </button>
+                </div>
+                <div class="aq-card-grid">
+                  <button type="button" class="aq-info-card aq-info-card--btn" data-show-changelog="version">
+                    <span class="aq-info-label">版本</span>
+                    <span class="aq-info-value" data-app-version>v2.4.0 · 2026-07-02</span>
+                  </button>
+                  <button type="button" class="aq-info-card aq-info-card--btn" data-show-changelog="features">
+                    <span class="aq-info-label">功能</span>
+                    <span class="aq-info-value" data-feature-summary>日历 · 课表 · 天气 · 工具 · 站点</span>
+                  </button>
+                </div>
+                <button type="button" class="aq-hint-card aq-hint-card--interactive" data-play-tutorial>
+                  <p class="aq-hint-title">上手小提示 <span class="aq-hint-play">点击播放教程 →</span></p>
+                  <ul class="aq-hint-list">
+                    <li><strong>模型窗口</strong> — 左键拖走她 · 右键左右滑可缩放</li>
+                    <li><strong>控制中心</strong> — 独立窗口，想多大就多大</li>
+                    <li><strong>和她玩</strong> — 单击互动 · 双击挥手 · 三击转圈</li>
+                    <li><strong>日历</strong> — 课表导入 · 提醒 · 天气 · 右键日期快速添加</li>
+                    <li><strong>常用站点</strong> — 学习、生活、工具类链接，少切一次浏览器</li>
+                    <li><strong>小工具</strong> — 番茄钟、天气、待办、换算……日常随手用</li>
+                  </ul>
+                </button>
+              </section>
+
+              <section class="aq-page" data-page="calendar">
+                <div id="calendar-hub"></div>
+              </section>
+
+              <section class="aq-page" data-page="sites">
+                <div id="sites-hub"></div>
+              </section>
+
+              <section class="aq-page" data-page="tools">
+                <div id="tools-hub"></div>
+              </section>
+
+              <section class="aq-page" data-page="appearance">
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">选择模型</h3>
+                      <p class="aq-settings-card-desc">点卡片切换 · 绑骨模型支持眼神与手势</p>
+                    </div>
+                  </header>
+                  <div id="model-picker" class="aq-model-grid"></div>
+                </div>
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">窗口尺寸</h3>
+                      <p class="aq-settings-card-desc">拖动滑块即时预览 · 也可输入数值</p>
+                    </div>
+                  </header>
+                  <div class="aq-field">
+                    <div class="aq-field-head">
+                      <span class="aq-field-label">模型窗口大小</span>
+                      <label class="aq-field-value aq-field-value--input">
+                        <input type="number" class="aq-field-num" data-input-for="petScale" min="60" max="180" step="1" value="100" aria-label="模型窗口大小百分比" />
+                        <span class="aq-field-unit">%</span>
+                      </label>
+                    </div>
+                    <input data-setting="petScale" class="aq-range" type="range" min="0.6" max="1.8" step="0.05" value="1" />
+                  </div>
+                  <div class="aq-field aq-field--last">
+                    <div class="aq-field-head">
+                      <span class="aq-field-label">模型窗口透明度</span>
+                      <label class="aq-field-value aq-field-value--input">
+                        <input type="number" class="aq-field-num" data-input-for="opacity" min="35" max="100" step="1" value="100" aria-label="模型窗口透明度百分比" />
+                        <span class="aq-field-unit">%</span>
+                      </label>
+                    </div>
+                    <input data-setting="opacity" class="aq-range" type="range" min="0.35" max="1" step="0.05" value="1" />
+                  </div>
+                </div>
+              </section>
+
+              <section class="aq-page" data-page="interaction">
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">眼神跟随</h3>
+                      <p class="aq-settings-card-desc">鼠标移动时头身转向 · 可展开分项微调</p>
+                    </div>
+                  </header>
+                  <div class="aq-field aq-field--last">
+                    <div class="aq-field-head">
+                      <span class="aq-field-label">总体灵敏度</span>
+                      <label class="aq-field-value aq-field-value--input">
+                        <input type="number" class="aq-field-num" data-input-for="lookSensitivity" min="60" max="220" step="1" value="100" aria-label="眼神总体灵敏百分比" />
+                        <span class="aq-field-unit">%</span>
+                      </label>
+                    </div>
+                    <input data-setting="lookSensitivity" class="aq-range" type="range" min="0.6" max="2.2" step="0.05" value="1" />
+                  </div>
+                  <div class="aq-look-sens-expand" data-look-sens-expand>
+                    <button type="button" class="aq-look-sens-expand-head" data-look-sens-toggle aria-expanded="false">
+                      <span class="aq-look-sens-expand-label">分项调节 · 头部 / 身体 / 手部</span>
+                      <span class="aq-look-sens-expand-chevron" aria-hidden="true">›</span>
+                    </button>
+                    <div class="aq-look-sens-expand-body" hidden>
+                      <div class="aq-look-sens-expand-inner">
+                        <div class="aq-field aq-field--nested">
+                          <div class="aq-field-head">
+                            <span class="aq-field-label">头部跟随</span>
+                            <label class="aq-field-value aq-field-value--input">
+                              <input type="number" class="aq-field-num" data-input-for="lookHeadSensitivity" min="60" max="220" step="1" value="80" aria-label="头部灵敏百分比" />
+                              <span class="aq-field-unit">%</span>
+                            </label>
+                          </div>
+                          <input data-setting="lookHeadSensitivity" class="aq-range" type="range" min="0.6" max="2.2" step="0.05" value="0.8" />
+                        </div>
+                        <div class="aq-field aq-field--nested">
+                          <div class="aq-field-head">
+                            <span class="aq-field-label">身体跟随</span>
+                            <label class="aq-field-value aq-field-value--input">
+                              <input type="number" class="aq-field-num" data-input-for="lookBodySensitivity" min="60" max="220" step="1" value="48" aria-label="身体灵敏百分比" />
+                              <span class="aq-field-unit">%</span>
+                            </label>
+                          </div>
+                          <input data-setting="lookBodySensitivity" class="aq-range" type="range" min="0.6" max="2.2" step="0.05" value="0.48" />
+                        </div>
+                        <div class="aq-field aq-field--nested aq-field--last">
+                          <div class="aq-field-head">
+                            <span class="aq-field-label">手部跟随</span>
+                            <label class="aq-field-value aq-field-value--input">
+                              <input type="number" class="aq-field-num" data-input-for="lookHandSensitivity" min="40" max="180" step="1" value="85" aria-label="手部灵敏百分比" />
+                              <span class="aq-field-unit">%</span>
+                            </label>
+                          </div>
+                          <input data-setting="lookHandSensitivity" class="aq-range" type="range" min="0.4" max="1.8" step="0.05" value="0.85" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">桌面反馈</h3>
+                      <p class="aq-settings-card-desc">键盘标签、气泡与按键动效</p>
+                    </div>
+                  </header>
+                  <div class="aq-toggle-grid">
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="showKeyLabels" type="checkbox" checked />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">键盘与鼠标反馈</span>
+                    </label>
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="showBubble" type="checkbox" checked />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">提示气泡</span>
+                    </label>
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="idleChatter" type="checkbox" checked />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">空闲时偶尔提示</span>
+                    </label>
+                  </div>
+                  <div class="aq-field">
+                    <div class="aq-field-head">
+                      <span class="aq-field-label">键盘标签透明度</span>
+                      <label class="aq-field-value aq-field-value--input">
+                        <input type="number" class="aq-field-num" data-input-for="keyboardOpacity" min="35" max="100" step="1" value="88" aria-label="键盘透明度百分比" />
+                        <span class="aq-field-unit">%</span>
+                      </label>
+                    </div>
+                    <input data-setting="keyboardOpacity" class="aq-range" type="range" min="0.35" max="1" step="0.05" value="0.88" />
+                  </div>
+                  <div class="aq-field aq-field--color aq-field--last">
+                    <div class="aq-field-head">
+                      <span class="aq-field-label">按键按下颜色</span>
+                    </div>
+                    <input data-setting="keyPressColor" class="aq-color" type="color" value="#e07898" />
+                  </div>
+                </div>
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">联网与性能</h3>
+                      <p class="aq-settings-card-desc">可选功能 · 不影响核心体验</p>
+                    </div>
+                  </header>
+                  <div class="aq-toggle-grid">
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="networkChatter" type="checkbox" checked />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">联网热梗与热点</span>
+                    </label>
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="lowPowerMode" type="checkbox" />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">省电模式</span>
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <section class="aq-page" data-page="system">
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">窗口行为</h3>
+                      <p class="aq-settings-card-desc">控制模型窗口在桌面上的显示方式</p>
+                    </div>
+                  </header>
+                  <div class="aq-toggle-grid">
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="alwaysOnTop" type="checkbox" checked />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">始终置顶</span>
+                    </label>
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="clickThrough" type="checkbox" />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">鼠标穿透</span>
+                    </label>
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="positionLocked" type="checkbox" />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">锁定窗口位置</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">输入与提醒</h3>
+                      <p class="aq-settings-card-desc">按键监听与本地通知</p>
+                    </div>
+                  </header>
+                  <div class="aq-toggle-grid">
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="keyboardPaused" type="checkbox" />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">暂停按键监听</span>
+                    </label>
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="remindersEnabled" type="checkbox" checked />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">本地提醒通知</span>
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <section class="aq-page" data-page="advanced">
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">版本更新</h3>
+                      <p class="aq-settings-card-desc">对比 GitHub 远程版本 · 源码拉取后本地打包</p>
+                    </div>
+                  </header>
+                  <p class="aq-update-status" data-update-status>当前版本加载中…</p>
+                  <div class="aq-inline-btns aq-update-actions">
+                    <button type="button" class="aq-update-btn aq-update-btn--primary" data-check-update>检查更新</button>
+                    <button type="button" class="aq-update-btn" data-open-repo>打开 GitHub</button>
+                    <button type="button" class="aq-update-btn" data-open-releases>发布页</button>
+                  </div>
+                  <details class="aq-mesh-details aq-update-guide">
+                    <summary>开发者：拉取并打包</summary>
+                    <pre class="aq-update-cmd">git pull origin main
+npm install
+npm run build:win
+
+# 或一键：
+npm run update:build</pre>
+                  </details>
+                </div>
+                <div class="aq-settings-hub">
+                  <header class="aq-hub-head">
+                    <div>
+                      <p class="aq-section-label">设置中心</p>
+                      <p class="aq-section-hint">动画预览 · 分类重置 · 恢复默认</p>
+                    </div>
+                    <span class="aq-hub-badge" aria-hidden="true">↺</span>
+                  </header>
+
+                  <section class="aq-hub-section">
+                    <p class="aq-hub-label">动画预览</p>
+                    <div class="aq-preview-row">
+                      <button type="button" class="aq-preview-card" data-preview="tutorial">
+                        <span class="aq-preview-glow" aria-hidden="true"></span>
+                        <span class="aq-preview-icon" aria-hidden="true">◎</span>
+                        <span class="aq-preview-text">
+                          <strong>播放教程动画</strong>
+                          <small>新手引导完整流程</small>
+                        </span>
+                        <span class="aq-preview-arrow" aria-hidden="true">→</span>
+                      </button>
+                      <button type="button" class="aq-preview-card aq-preview-card--birthday" data-preview="birthday">
+                        <span class="aq-preview-glow" aria-hidden="true"></span>
+                        <span class="aq-preview-icon" aria-hidden="true">🎂</span>
+                        <span class="aq-preview-text">
+                          <strong>播放生日祝福</strong>
+                          <small>礼盒开箱 · 模型登场</small>
+                        </span>
+                        <span class="aq-preview-arrow" aria-hidden="true">→</span>
+                      </button>
+                    </div>
+                  </section>
+
+                  <section class="aq-hub-section">
+                    <p class="aq-hub-label">分类重置</p>
+                    <div class="aq-reset-chips">
+                      <button type="button" class="aq-reset-chip" data-reset-scope="appearance">
+                        <span class="aq-reset-chip-icon">◐</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">模型</span>
+                          <span class="aq-reset-chip-desc">模型 · 大小 · 透明度</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip" data-reset-scope="interaction">
+                        <span class="aq-reset-chip-icon">◎</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">互动</span>
+                          <span class="aq-reset-chip-desc">眼神 · 键盘 · 气泡</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip" data-reset-scope="system">
+                        <span class="aq-reset-chip-icon">▢</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">窗口</span>
+                          <span class="aq-reset-chip-desc">置顶 · 穿透 · 锁定</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip" data-reset-scope="tutorial">
+                        <span class="aq-reset-chip-icon">✦</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">教程入口</span>
+                          <span class="aq-reset-chip-desc">重现右下角光点</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip aq-reset-chip--wide" data-reset-scope="reminders">
+                        <span class="aq-reset-chip-icon">📅</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">日历提醒</span>
+                          <span class="aq-reset-chip-desc">清空自定义 · 恢复默认条目</span>
+                        </span>
+                      </button>
+                    </div>
+                  </section>
+
+                  <button type="button" class="aq-reset-all" data-reset-scope="all">
+                    <span class="aq-reset-all-shine" aria-hidden="true"></span>
+                    <span class="aq-reset-all-label">恢复全部默认</span>
+                    <span class="aq-reset-all-hint">模型 · 互动 · 窗口 · 提醒</span>
+                  </button>
+
+                  <p class="aq-reset-status" data-reset-status aria-live="polite"></p>
+                </div>
+
+                <div class="aq-settings-card aq-settings-card--flat">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">骨骼姿势编辑器</h3>
+                      <p class="aq-settings-card-desc">Rainbow 鱼工作室 · 绑骨姿势与过渡设计</p>
+                    </div>
+                  </header>
+                  <button type="button" class="aq-preview-card aq-pose-editor-open" data-open-pose-editor>
+                    <span class="aq-preview-glow" aria-hidden="true"></span>
+                    <img class="aq-pose-editor-logo" src="./logo_rainbow.png" alt="" width="36" height="36" aria-hidden="true" />
+                    <span class="aq-preview-text">
+                      <strong>打开骨骼姿势编辑器</strong>
+                      <small>姿势库 · 过渡 · Gizmo 变换</small>
+                    </span>
+                    <span class="aq-preview-arrow" aria-hidden="true">→</span>
+                  </button>
+                </div>
+
+                <div class="aq-dev-expand" data-dev-toggle aria-expanded="false">
+                  <button type="button" class="aq-dev-expand-head" data-dev-toggle-head>
+                    <span class="aq-dev-expand-avatar" aria-hidden="true">R</span>
+                    <div class="aq-dev-expand-meta">
+                      <span class="aq-dev-expand-name">开发者与作者</span>
+                      <span class="aq-dev-expand-brief">Rainbow 鱼工作室</span>
+                    </div>
+                    <span class="aq-dev-expand-chevron" aria-hidden="true"></span>
+                  </button>
+                  <div class="aq-dev-expand-body" aria-hidden="true">
+                    <div class="aq-dev-expand-inner">
+                      <p class="aq-dev-expand-desc">做 AI 可视化、计算机视觉和桌面交互 —— 把代码变成能陪你干活的小东西。</p>
+                      <div class="aq-dev-links">
+                        <button type="button" class="aq-dev-link-btn" data-open-url="https://github.com/rainbowyuyu" tabindex="-1">
+                          <span>GitHub</span>
+                          <small>更新与反馈</small>
+                        </button>
+                        <button type="button" class="aq-dev-link-btn" data-open-url="http://www.rainbowyu.com.cn" tabindex="-1">
+                          <span>个人主页</span>
+                          <small>rainbowyu.com.cn</small>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/panel.js"></script>
+  </body>
+</html>

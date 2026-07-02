@@ -1,0 +1,314 @@
+/* ── 全息输入 HUD ── */
+#key-viz {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  overflow: hidden;
+}
+
+.holo-hud {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: min(96%, 300px);
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: linear-gradient(
+    145deg,
+    rgba(12, 24, 32, 0.52) 0%,
+    rgba(20, 36, 48, 0.38) 100%
+  );
+  border: 1px solid rgba(102, 220, 255, 0.28);
+  box-shadow:
+    0 8px 28px rgba(20, 40, 56, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 24px rgba(102, 220, 255, 0.08);
+  backdrop-filter: blur(10px) saturate(1.2);
+  animation: holo-hud-in 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes holo-hud-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.holo-scanlines {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(102, 220, 255, 0.03) 2px,
+    rgba(102, 220, 255, 0.03) 4px
+  );
+  animation: holo-scan 8s linear infinite;
+}
+
+@keyframes holo-scan {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 40px;
+  }
+}
+
+.holo-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.holo-panel--radar {
+  flex-shrink: 0;
+  width: 88px;
+}
+
+.holo-panel--keys {
+  flex: 1;
+  min-width: 0;
+}
+
+.holo-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(136, 238, 255, 0.65);
+}
+
+.holo-radar {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 220, 255, 0.08) 0%, transparent 70%);
+  border: 1px solid rgba(102, 220, 255, 0.22);
+  overflow: hidden;
+}
+
+.holo-radar-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(102, 220, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 220, 255, 0.12) 1px, transparent 1px);
+  background-size: 33.33% 33.33%;
+  opacity: 0.6;
+}
+
+.holo-radar-cross::before,
+.holo-radar-cross::after {
+  content: '';
+  position: absolute;
+  background: rgba(102, 220, 255, 0.18);
+}
+
+.holo-radar-cross::before {
+  left: 50%;
+  top: 8%;
+  width: 1px;
+  height: 84%;
+  transform: translateX(-50%);
+}
+
+.holo-radar-cross::after {
+  top: 50%;
+  left: 8%;
+  height: 1px;
+  width: 84%;
+  transform: translateY(-50%);
+}
+
+.holo-radar-anchor {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 152, 168, 0.7);
+  box-shadow: 0 0 8px rgba(232, 152, 168, 0.45);
+}
+
+.holo-radar-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #66eeff;
+  box-shadow:
+    0 0 10px rgba(102, 238, 255, 0.9),
+    0 0 20px rgba(102, 238, 255, 0.4);
+  transition: left 0.08s linear, top 0.08s linear;
+}
+
+.holo-radar-trail {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  border: 1px solid rgba(102, 238, 255, 0.35);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.15s ease;
+}
+
+.holo-radar-trail.is-active {
+  opacity: 1;
+  animation: holo-trail-pulse 0.35s ease-out forwards;
+}
+
+@keyframes holo-trail-pulse {
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.holo-mouse-btns {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.holo-mbtn {
+  min-width: 22px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  color: rgba(136, 238, 255, 0.45);
+  border: 1px solid rgba(102, 220, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.holo-mbtn.is-down {
+  color: #fff;
+  border-color: rgba(102, 238, 255, 0.55);
+  background: linear-gradient(135deg, rgba(102, 220, 255, 0.35), rgba(152, 192, 232, 0.25));
+  box-shadow: 0 0 12px rgba(102, 238, 255, 0.35);
+}
+
+.holo-keyboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 52px;
+  align-content: flex-start;
+}
+
+.holo-key-empty {
+  font-size: 10px;
+  color: rgba(136, 238, 255, 0.35);
+  letter-spacing: 0.06em;
+  padding: 8px 2px;
+}
+
+.holo-key {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(220, 248, 255, 0.95);
+  border: 1px solid rgba(102, 220, 255, 0.35);
+  background: rgba(102, 220, 255, 0.1);
+  overflow: hidden;
+  animation: holo-key-pop 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes holo-key-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.holo-key-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(102, 238, 255, 0.25), transparent 60%);
+  pointer-events: none;
+}
+
+.holo-key--letter {
+  border-color: rgba(232, 152, 168, 0.4);
+  background: rgba(232, 152, 168, 0.12);
+}
+
+.holo-key--modifier {
+  border-color: rgba(152, 192, 232, 0.45);
+  background: rgba(152, 192, 232, 0.12);
+}
+
+.holo-key--special {
+  border-color: rgba(232, 200, 120, 0.45);
+  background: rgba(232, 200, 120, 0.1);
+}
+
+.holo-typing-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(102, 220, 255, 0.12);
+  overflow: hidden;
+}
+
+.holo-typing-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #66eeff, #e898a8);
+  box-shadow: 0 0 8px rgba(102, 238, 255, 0.5);
+  transition: width 0.12s ease;
+}
+
+.holo-beam-line {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  width: 1px;
+  height: 36px;
+  margin-left: -0.5px;
+  background: linear-gradient(180deg, transparent, rgba(102, 238, 255, 0.5));
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+#app.settings-open #key-viz {
+  visibility: hidden;
+}

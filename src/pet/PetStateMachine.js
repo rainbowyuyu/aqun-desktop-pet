@@ -1,0 +1,479 @@
+import { classifyKey, KonamiDetector } from './KeyReactionMap.js';
+import { keyBodySide, keyIntensity } from './keySide.js';
+
+
+
+const IDLE_TIMEOUT_MS = 4500;
+
+const TYPING_COOLDOWN_MS = 120;
+
+
+
+const STATE_PRIORITY = {
+
+  hologram: 90,
+
+  poke: 80,
+
+  surprised: 70,
+
+  jump: 60,
+
+  nod: 55,
+
+  wave: 50,
+
+  spin: 50,
+
+  lean: 40,
+
+  focus: 35,
+
+  typing: 30,
+
+  idle: 0,
+
+};
+
+
+
+export class PetStateMachine {
+
+  constructor({
+    animations,
+    modelLoader = null,
+    onBubble,
+    onHologram,
+    onStateChange,
+    onMoodChange,
+    getIdleChatter,
+    onKonami,
+    onPoke,
+    onKeyEvent,
+  }) {
+
+    this.animations = animations;
+    this.modelLoader = modelLoader;
+
+    this.onBubble = onBubble;
+
+    this.onHologram = onHologram;
+
+    this.onStateChange = onStateChange;
+
+    this.onMoodChange = onMoodChange;
+
+    this.getIdleChatter = getIdleChatter || (() => true);
+
+    this.onKonami = onKonami;
+
+    this.onPoke = onPoke;
+
+    this.onKeyEvent = onKeyEvent;
+
+
+
+    this.state = 'idle';
+
+    this._lastKeyAt = Date.now();
+
+    this._keyTimestamps = [];
+
+    this._konami = new KonamiDetector(() => this._triggerKonami());
+
+    this._idleTimer = null;
+
+    this._typingDecayTimer = null;
+
+    this._lastReactionAt = 0;
+
+    this.typingSpeed = 0;
+
+  }
+
+  _playClipOr(name, fallback) {
+    const action = this.modelLoader?.playClipOnce?.(name);
+    if (action) return action;
+    return fallback?.() ?? null;
+  }
+
+  start() {
+
+    this.animations.startIdleBreath();
+
+    this._scheduleIdleCheck();
+
+    this.onMoodChange?.('idle');
+
+  }
+
+
+
+  handleKeyEvent({ code, type, timestamp, name }) {
+
+    this._konami.feed(code, type);
+
+    this.onKeyEvent?.({ code, type, timestamp, name });
+
+    if (type !== 'down') return;
+
+
+
+    this._lastKeyAt = timestamp || Date.now();
+
+    this._keyTimestamps.push(this._lastKeyAt);
+
+    this._keyTimestamps = this._keyTimestamps.filter((t) => this._lastKeyAt - t < 3000);
+
+    this.typingSpeed = this._keyTimestamps.length / 3;
+
+
+
+    const reaction = classifyKey(code, type, name);
+
+    const now = this._lastKeyAt;
+
+
+
+    if (reaction.kind === 'typing' || reaction.kind === 'generic') {
+
+      if (now - this._lastReactionAt < TYPING_COOLDOWN_MS) return;
+
+    }
+
+    this._lastReactionAt = now;
+
+
+
+    this._applyReaction(reaction, name);
+
+    this._scheduleIdleCheck();
+
+    this.animations.setTypingEnergy(Math.min(1, this.typingSpeed / 2.2));
+
+    this.onMoodChange?.('typing');
+
+  }
+
+
+
+  _applyReaction(reaction, name = '') {
+    const side = keyBodySide(name);
+    const strike = keyIntensity(name, this.typingSpeed);
+
+    switch (reaction.kind) {
+
+      case 'jump':
+
+        this._setState('jump');
+
+        this.animations.playKeyStrike('center', 0.95);
+
+        this.animations.playJump();
+
+        this.onBubble?.('space');
+
+        break;
+
+      case 'sway':
+
+        this._setState('typing');
+
+        if (!this._playClipOr('sway', () => this.animations.playSpaceSway(reaction.intensity ?? 0.75))) {
+          /* gsap fallback already invoked */
+        }
+
+        this.onBubble?.('space');
+
+        break;
+
+      case 'nod':
+
+        this._setState('nod');
+
+        this.animations.playKeyStrike('center', 0.7);
+
+        this._playClipOr('nod', () => this.animations.playNod());
+
+        this.onBubble?.(reaction.bubble);
+
+        break;
+
+      case 'surprised':
+
+        this._setState('surprised');
+
+        this.animations.playKeyStrike('center', 0.8);
+
+        this.animations.playSurprised();
+
+        this.onBubble?.(reaction.bubble);
+
+        break;
+
+      case 'lean':
+
+        this._setState('lean');
+
+        this.animations.playLean(reaction.direction);
+
+        clearTimeout(this._typingDecayTimer);
+
+        this._typingDecayTimer = setTimeout(() => this.animations.resetLean(), 380);
+
+        break;
+
+      case 'focus':
+
+        this._setState('focus');
+
+        this.animations.playFocus();
+
+        break;
+
+      case 'function':
+
+        this._setState('typing');
+
+        this.animations.playKeyStrike('center', reaction.intensity || 0.8);
+
+        this.animations.playFunction(reaction.intensity || 1);
+
+        break;
+
+      case 'numpad':
+
+        this._setState('typing');
+
+        this.animations.playKeyStrike('right', 0.65);
+
+        this.animations.playNumpad();
+
+        break;
+
+      case 'typing':
+
+        this._setState('typing');
+
+        this.animations.playKeyStrike(side, strike);
+
+        this.animations.playTyping(Math.min(2, 0.45 + this.typingSpeed * 0.35));
+
+        break;
+
+      case 'generic':
+
+        this._setState('typing');
+
+        this.animations.playKeyStrike(side, strike * 0.85);
+
+        this.animations.playGeneric(0.45 + Math.min(1, this.typingSpeed * 0.25));
+
+        break;
+
+      default:
+
+        this._setState('typing');
+
+        this.animations.playKeyStrike(side, strike * 0.7);
+
+        this.animations.playGeneric(0.35);
+
+        break;
+
+    }
+
+  }
+
+
+
+  poke() {
+
+    if (!this._canOverride('poke')) return;
+
+    this.onPoke?.();
+
+    this._setState('poke');
+
+    if (!this._playClipOr('poke', () => this.animations.playPoke())) {
+      /* gsap fallback already invoked */
+    }
+
+    this.onBubble?.('poke');
+
+    this._scheduleIdleCheck();
+
+  }
+
+
+
+  wave() {
+
+    if (!this._canOverride('wave')) return;
+
+    this._setState('wave');
+
+    this._playClipOr('wave', () => this.animations.playWave());
+
+    this.onBubble?.('wave');
+
+    this._scheduleIdleCheck();
+
+  }
+
+
+
+  spin() {
+
+    if (!this._canOverride('spin')) return;
+
+    this._setState('spin');
+
+    this.animations.playSpin();
+
+    this._scheduleIdleCheck();
+
+  }
+
+
+
+  lookAt(x, y, w, h) {
+
+    if (this.state === 'hologram' || this.state === 'spin') return;
+
+    this.animations.lookAt(x, y, w, h);
+
+  }
+
+
+
+  lookAtNorm(nx, ny) {
+
+    if (this.state === 'hologram' || this.state === 'spin') return;
+
+    this.animations.lookAtNorm(nx, ny);
+
+  }
+
+
+
+  resetLook() {
+
+    this.animations.resetLook();
+
+  }
+
+
+
+  _triggerKonami() {
+
+    this.onKonami?.();
+
+    this._setState('hologram');
+
+    this.onHologram?.(true);
+
+    this.onMoodChange?.('hologram');
+
+    this.onBubble?.('konami');
+
+    this.animations.playHologramFlash(
+
+      () => this.onHologram?.(true),
+
+      () => {
+
+        this.onHologram?.(false);
+
+        this._setState('idle');
+
+        this.animations.startIdleBreath();
+
+        this.onMoodChange?.('idle');
+
+      }
+
+    );
+
+  }
+
+
+
+  _canOverride(next) {
+
+    return STATE_PRIORITY[next] >= (STATE_PRIORITY[this.state] || 0);
+
+  }
+
+
+
+  _setState(next) {
+
+    if (this.state === next) return;
+
+    this.state = next;
+
+    this.onStateChange?.(next);
+
+  }
+
+
+
+  _scheduleIdleCheck() {
+
+    clearTimeout(this._idleTimer);
+
+    this._idleTimer = setTimeout(() => this._goIdle(), IDLE_TIMEOUT_MS);
+
+  }
+
+
+
+  _goIdle() {
+
+    if (Date.now() - this._lastKeyAt < IDLE_TIMEOUT_MS) return;
+
+    this._setState('idle');
+
+    this.animations.resetLean(0.5);
+
+    this.animations.setTypingEnergy(0);
+
+    this.animations.startIdleBreath();
+
+    this.onMoodChange?.('idle');
+
+
+
+    const roll = Math.random();
+
+    if (this.getIdleChatter() && roll < 0.22) {
+
+      this.onBubble?.('idle');
+
+    } else if (roll < 0.32) {
+
+      this.animations.playStretch();
+
+    } else if (roll < 0.38) {
+
+      this._playClipOr('wave', () => this.animations.playWave());
+
+    }
+
+  }
+
+
+
+  dispose() {
+
+    clearTimeout(this._idleTimer);
+
+    clearTimeout(this._typingDecayTimer);
+
+    this.animations.dispose?.();
+
+  }
+
+}
+
