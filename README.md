@@ -19,10 +19,12 @@ npm run dev
 
 ```bash
 npm run build:win
-# 输出：release/win-unpacked/阿群模型.exe
+# 输出：
+#   release/win-unpacked/启动.exe
+#   启动/启动.exe          ← 项目根目录便携版，可直接双击
 ```
 
-打包前请关闭正在运行的「阿群模型」，否则可能因文件占用失败。
+打包前请关闭正在运行的「启动」或 Electron 进程，否则可能因文件占用失败。
 
 ---
 

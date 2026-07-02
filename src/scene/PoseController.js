@@ -14,8 +14,10 @@ export class PoseController {
     this.skeleton = null;
     this.modelRoot = null;
     this._bindQuats = new Map();
+    this._bindPositions = new Map();
     this._locks = new Map();
     this._liveEuler = new Map();
+    this._livePosition = new Map();
   }
 
   attach(root) {
@@ -35,8 +37,10 @@ export class PoseController {
     this.skeleton = null;
     this.modelRoot = null;
     this._bindQuats.clear();
+    this._bindPositions.clear();
     this._locks.clear();
     this._liveEuler.clear();
+    this._livePosition.clear();
   }
 
   get isReady() {
@@ -45,11 +49,14 @@ export class PoseController {
 
   captureBindPose() {
     this._bindQuats.clear();
+    this._bindPositions.clear();
     this.skeleton.pose();
     this.skeleton.bones.forEach((bone) => {
       this._bindQuats.set(bone.name, bone.quaternion.clone());
+      this._bindPositions.set(bone.name, bone.position.clone());
     });
     this._liveEuler.clear();
+    this._livePosition.clear();
   }
 
   listBones() {
@@ -105,6 +112,39 @@ export class PoseController {
     return euler;
   }
 
+  getBonePosition(name) {
+    if (this._livePosition.has(name)) {
+      return [...this._livePosition.get(name)];
+    }
+    return this._computeBonePosition(name);
+  }
+
+  _computeBonePosition(name) {
+    const bone = this.getBone(name);
+    const bind = this._bindPositions.get(name);
+    if (!bone || !bind) return [0, 0, 0];
+    return [
+      bone.position.x - bind.x,
+      bone.position.y - bind.y,
+      bone.position.z - bind.z,
+    ];
+  }
+
+  syncPositionFromBone(name) {
+    const pos = this._computeBonePosition(name);
+    this._livePosition.set(name, pos);
+    return pos;
+  }
+
+  setBonePosition(name, position, { skipLive = false } = {}) {
+    const bone = this.getBone(name);
+    const bind = this._bindPositions.get(name);
+    if (!bone || !bind) return;
+    const p = position ?? [0, 0, 0];
+    bone.position.set(bind.x + p[0], bind.y + p[1], bind.z + p[2]);
+    if (!skipLive) this._livePosition.set(name, [...p]);
+  }
+
   setBoneEuler(name, euler, { skipLive = false } = {}) {
     const bone = this.getBone(name);
     const bind = this._bindQuats.get(name);
@@ -122,9 +162,12 @@ export class PoseController {
 
   resetBone(name) {
     const bind = this._bindQuats.get(name);
+    const bindPos = this._bindPositions.get(name);
     const bone = this.getBone(name);
     if (bind && bone) bone.quaternion.copy(bind);
+    if (bindPos && bone) bone.position.copy(bindPos);
     this._liveEuler.delete(name);
+    this._livePosition.delete(name);
   }
 
   resetAll() {
@@ -140,6 +183,14 @@ export class PoseController {
       if (onlyUnlocked && this.isLocked(name)) continue;
       if (entry?.locked && respectLocks) continue;
       this.setBoneEuler(name, entry?.euler ?? [0, 0, 0]);
+      if (entry?.position) {
+        this.setBonePosition(name, entry.position);
+      } else {
+        const bindPos = this._bindPositions.get(name);
+        const bone = this.getBone(name);
+        if (bindPos && bone) bone.position.copy(bindPos);
+        this._livePosition.delete(name);
+      }
     }
     this.finalize();
   }
@@ -156,8 +207,10 @@ export class PoseController {
     const bones = {};
     for (const bone of this.listBones()) {
       const euler = this.getBoneEuler(bone.name);
+      const position = this.getBonePosition(bone.name);
       bones[bone.name] = {
         euler,
+        position,
         locked: this.isLocked(bone.name),
       };
     }

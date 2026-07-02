@@ -19,8 +19,8 @@
     "build:renderer": "vite build",
     "build:icon": "node scripts/generate-icon.cjs",
     "start": "electron .",
-    "build:win": "node scripts/generate-icon.cjs && vite build && electron-builder --win --dir && node scripts/patch-exe-icon.cjs",
-    "build:installer": "node scripts/generate-icon.cjs && vite build && electron-builder --win && node scripts/patch-exe-icon.cjs",
+    "build:win": "node scripts/generate-icon.cjs && vite build && electron-builder --win --dir && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
+    "build:installer": "node scripts/generate-icon.cjs && vite build && electron-builder --win && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
     "check-update": "node scripts/check-update.mjs",
     "update:build": "powershell -ExecutionPolicy Bypass -File scripts/pull-and-build.ps1"
   },
@@ -41,7 +41,7 @@
   },
   "build": {
     "appId": "com.rainbowyu.aqun-pet",
-    "productName": "阿群模型",
+    "productName": "启动",
     "directories": {
       "output": "release"
     },
@@ -74,7 +74,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "阿群模型"
+      "shortcutName": "启动"
     }
   }
 }

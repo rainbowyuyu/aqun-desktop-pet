@@ -2,6 +2,8 @@
 node_modules/
 dist/
 release/
+启动/
+启动.bat
 build/icon.ico
 
 # 日志与本地环境

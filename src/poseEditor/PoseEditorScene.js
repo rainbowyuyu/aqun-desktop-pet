@@ -30,6 +30,11 @@ export class PoseEditorScene {
     this.controls.target.set(0, 0.72, 0);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
+    this.controls.mouseButtons = {
+      LEFT: null,
+      MIDDLE: THREE.MOUSE.ROTATE,
+      RIGHT: THREE.MOUSE.PAN,
+    };
     this.controls.update();
 
     this.lighting = new PetLighting(this.scene, this.renderer);

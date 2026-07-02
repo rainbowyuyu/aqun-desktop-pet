@@ -703,11 +703,46 @@ body {
 }
 
 .pe-bone-pos {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-family: ui-monospace, monospace;
   font-size: 11px;
   color: #8ec8ff;
   line-height: 1.5;
+}
+
+.pe-bone-hint {
+  margin: 0 0 10px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #8a949c;
+}
+
+.pe-bone-hint strong {
+  color: #a8d8f0;
+  font-weight: 600;
+}
+
+.pe-sliders-details {
+  margin: 0 0 10px;
+  border-radius: 8px;
+  border: 1px solid #2e383e;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pe-sliders-details summary {
+  cursor: pointer;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #9aa4ac;
+  user-select: none;
+}
+
+.pe-sliders-details summary:hover {
+  color: #c0c8d0;
+}
+
+.pe-sliders-details .pe-sliders {
+  padding: 0 10px 10px;
 }
 
 .pe-sliders-hint {

@@ -5,6 +5,11 @@ import { HeadBodyRig } from '../scene/HeadBodyRig.js';
 import { SkeletalRig } from '../scene/SkeletalRig.js';
 import { loadPartsConfig } from '../scene/GltfParts.js';
 import { loadMessageForProgress } from './bubbleCopy.js';
+
+const VIEW_BASE_WIDTH = 320;
+const VIEW_BASE_HEIGHT = 480;
+const VIEW_ASPECT = VIEW_BASE_WIDTH / VIEW_BASE_HEIGHT;
+
 export class PetScene {
   constructor(canvas) {
     this.canvas = canvas;
@@ -51,7 +56,13 @@ export class PetScene {
     this._skeletalLookApply = null;
     this._loadChain = Promise.resolve();
 
-    this._onResize = () => this.onResize();
+    this._onResize = () => {
+      if (this._resizeDelegate) {
+        this._resizeDelegate();
+        return;
+      }
+      this.onResize();
+    };
     this._onVisibility = () => {
       this._visible = !document.hidden;
       if (this._visible) this.render();
@@ -170,9 +181,26 @@ export class PetScene {
     });
   }
 
+  setResizeDelegate(fn) {
+    this._resizeDelegate = fn;
+  }
+
   onResize(explicitW, explicitH) {
-    const w = Math.max(1, explicitW || window.innerWidth);
-    const h = Math.max(1, explicitH || window.innerHeight);
+    let w = Math.max(1, explicitW || window.innerWidth);
+    let h = Math.max(1, explicitH || window.innerHeight);
+
+    if (!explicitW || !explicitH) {
+      const ratio = w / h;
+      if (Math.abs(ratio - VIEW_ASPECT) > 0.012) {
+        h = Math.round(w / VIEW_ASPECT);
+      }
+    } else {
+      const ratio = w / h;
+      if (Math.abs(ratio - VIEW_ASPECT) > 0.012) {
+        h = Math.round(w / VIEW_ASPECT);
+      }
+    }
+
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h, false);

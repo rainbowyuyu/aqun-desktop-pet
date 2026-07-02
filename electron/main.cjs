@@ -67,11 +67,11 @@ const BASE_WIDTH = 320;
 
 const BASE_HEIGHT = 480;
 
-const PANEL_WIDTH = 1240;
+const PANEL_WIDTH = 1380;
 
 const PANEL_HEIGHT = 820;
 
-const PANEL_MIN_WIDTH = 960;
+const PANEL_MIN_WIDTH = 1080;
 
 const PANEL_MIN_HEIGHT = 580;
 
@@ -92,6 +92,7 @@ let rebuildTrayMenu = null;
 let panelBoundsTimer = null;
 
 let dragOffset = null;
+let dragLockedSize = null;
 let interactionMode = 'idle';
 let isDragging = false;
 let isResizing = false;
@@ -172,6 +173,11 @@ function applySettingsSideEffects(partial, { resetInteraction = false } = {}) {
       interactionMode = 'idle';
       resizeAnchor = null;
       dragOffset = null;
+      dragLockedSize = null;
+    }
+    if (isDragging || interactionMode === 'drag') {
+      settings.petScale = clampScale(settings.petScale);
+      return;
     }
     settings.petScale = clampScale(settings.petScale);
     applyWindowScale(settings.petScale, { keepCenter: true });
@@ -346,6 +352,7 @@ function applyWindowScale(scale, { keepCenter = true, anchor = null } = {}) {
 
 function applyLivePetScale(scale, { anchor = null } = {}) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (isDragging || interactionMode === 'drag') return;
   const next = clampScale(scale);
   const target = windowSizeForScale(next);
   const [curW, curH] = mainWindow.getSize();
@@ -364,6 +371,7 @@ function resetInteractionState() {
   interactionMode = 'idle';
   resizeAnchor = null;
   dragOffset = null;
+  dragLockedSize = null;
   applyClickThrough();
   mainWindow?.webContents?.send('interaction-reset');
 }
@@ -1139,7 +1147,7 @@ function setupIpc() {
   });
 
   ipcMain.on('pet-scale-live', (_event, scale) => {
-    if (interactionMode === 'drag') return;
+    if (interactionMode === 'drag' || isDragging) return;
     applyLivePetScale(scale);
   });
 
@@ -1163,7 +1171,7 @@ function setupIpc() {
 
 
   ipcMain.on('window-scale-live', (_event, scale) => {
-    if (interactionMode === 'drag') return;
+    if (interactionMode === 'drag' || isDragging) return;
 
     if (!isResizing) {
       interactionMode = 'resize';
@@ -1182,7 +1190,7 @@ function setupIpc() {
   });
 
   ipcMain.handle('set-window-scale-live', (_event, scale) => {
-    if (interactionMode === 'drag') return settings.petScale;
+    if (interactionMode === 'drag' || isDragging) return settings.petScale;
 
     if (!isResizing) {
       interactionMode = 'resize';
@@ -1288,6 +1296,15 @@ function setupIpc() {
     isResizing = false;
     resizeAnchor = null;
     applyClickThrough();
+
+    const expected = windowSizeForScale(settings.petScale);
+    dragLockedSize = { width: expected.width, height: expected.height };
+
+    const [curW, curH] = mainWindow.getSize();
+    if (curW !== expected.width || curH !== expected.height) {
+      applyWindowScale(settings.petScale, { keepCenter: true });
+    }
+
     const [x, y] = mainWindow.getPosition();
     const sx = Number.isFinite(screenX) ? screenX : screen.getCursorScreenPoint().x;
     const sy = Number.isFinite(screenY) ? screenY : screen.getCursorScreenPoint().y;
@@ -1295,14 +1312,38 @@ function setupIpc() {
   });
 
   ipcMain.on('window-drag-move', (_event, screenX, screenY) => {
-    if (!mainWindow || !dragOffset) return;
+    if (!mainWindow || !dragOffset || !dragLockedSize) return;
     const sx = Number.isFinite(screenX) ? screenX : screen.getCursorScreenPoint().x;
     const sy = Number.isFinite(screenY) ? screenY : screen.getCursorScreenPoint().y;
-    mainWindow.setPosition(Math.round(sx - dragOffset.x), Math.round(sy - dragOffset.y));
+    mainWindow.setBounds(
+      {
+        x: Math.round(sx - dragOffset.x),
+        y: Math.round(sy - dragOffset.y),
+        width: dragLockedSize.width,
+        height: dragLockedSize.height,
+      },
+      false,
+    );
   });
 
   ipcMain.on('window-drag-end', () => {
+    if (mainWindow && !mainWindow.isDestroyed() && dragLockedSize) {
+      const bounds = mainWindow.getBounds();
+      if (bounds.width !== dragLockedSize.width || bounds.height !== dragLockedSize.height) {
+        mainWindow.setBounds(
+          {
+            x: bounds.x,
+            y: bounds.y,
+            width: dragLockedSize.width,
+            height: dragLockedSize.height,
+          },
+          false,
+        );
+      }
+      notifyWindowBoundsChanged(dragLockedSize.width, dragLockedSize.height);
+    }
     dragOffset = null;
+    dragLockedSize = null;
     isDragging = false;
     interactionMode = 'idle';
     applyClickThrough();

@@ -408,6 +408,8 @@ export class PetApp {
 
       onScalePreview: (scale) => {
 
+        if (this.interaction?.isDragging) return;
+
         const next = Math.max(0.6, Math.min(1.8, scale));
         this.settings.petScale = next;
         this._syncSceneSize({ petScale: next });
@@ -422,6 +424,8 @@ export class PetApp {
 
         this.globalLook?.clearPending?.();
 
+        this._syncSceneSize();
+
       },
 
       onDragEnd: () => {
@@ -429,6 +433,8 @@ export class PetApp {
         this.animations?.resetLook();
 
         this._syncClickThrough();
+
+        this._syncSceneSize();
 
       },
 
@@ -819,8 +825,11 @@ export class PetApp {
   }
 
   _bindWindowBoundsSync() {
+    this.scene?.setResizeDelegate(() => this._syncSceneSize());
+
     if (!window.aqunPet?.onWindowBoundsChanged) return;
     this._unsubBounds = window.aqunPet.onWindowBoundsChanged((payload) => {
+      if (this.interaction?.isDragging) return;
       if (payload?.petScale != null) {
         this.settings.petScale = payload.petScale;
       }

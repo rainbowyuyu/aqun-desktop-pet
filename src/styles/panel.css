@@ -96,11 +96,11 @@ body[data-app='panel'] .aq-nav-footer {
 
 /* 左侧导航 */
 .aq-nav {
-  width: 100px;
+  width: 116px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  padding: 14px 8px;
+  padding: 14px 10px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(248, 252, 250, 0.28) 100%);
   border-right: 1px solid rgba(58, 88, 72, 0.08);
@@ -202,17 +202,22 @@ body[data-app='panel'] .aq-nav-footer {
 .aq-nav-footer {
   text-align: center;
   padding-top: 8px;
+  overflow: visible;
 }
 
 .aq-version {
   font-size: 9px;
   color: rgba(58, 88, 72, 0.35);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: 999px;
+  max-width: 100%;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-all;
   transition: color 0.2s ease, background 0.2s ease;
   -webkit-app-region: no-drag;
 }

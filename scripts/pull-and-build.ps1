@@ -19,7 +19,7 @@ if (-not (Test-Path ".git")) {
 
 if (-not $SkipKill) {
   Write-Host "==> 结束正在运行的阿群模型..." -ForegroundColor Yellow
-  Get-Process -Name "阿群模型", "electron" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+  Get-Process -Name "启动", "阿群模型", "electron" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
   Start-Sleep -Seconds 2
 }
 
@@ -43,11 +43,16 @@ if ($LASTEXITCODE -eq 2) {
 Write-Host "==> npm run build:win..." -ForegroundColor Cyan
 npm run build:win
 
-$exe = Join-Path $Root "release\win-unpacked\阿群模型.exe"
+$exe = Join-Path $Root "启动\启动.exe"
+$releaseExe = Join-Path $Root "release\win-unpacked\启动.exe"
 if (Test-Path $exe) {
   Write-Host ""
   Write-Host "✓ 打包完成" -ForegroundColor Green
   Write-Host "  $exe"
+} elseif (Test-Path $releaseExe) {
+  Write-Host ""
+  Write-Host "✓ 打包完成（便携目录未同步，请检查 stage-portable）" -ForegroundColor Yellow
+  Write-Host "  $releaseExe"
 } else {
   Write-Error "未找到输出 exe，请检查 build 日志"
 }

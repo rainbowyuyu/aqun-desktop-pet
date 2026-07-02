@@ -40,14 +40,14 @@ export class BirthdaySecrets {
         this.bubble.showText(randomSecret('avatar'));
         this.fsm.wave();
       } else if (this._avatarClicks === 3) {
-        this.bubble.showText('再点几下试试');
+        this.bubble.showText('再点几下，有惊喜等着你');
       }
     });
 
     aboutAvatar?.querySelector('.aq-about-ring')?.addEventListener('click', (e) => {
       e.stopPropagation();
       this.fx.flashRainbowRing();
-      this.bubble.showText('装饰环，生日限定');
+      this.bubble.showText('生日限定光环 ✦');
     });
   }
 

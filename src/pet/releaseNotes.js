@@ -1,6 +1,6 @@
 /** 应用版本与功能说明 */
 export const APP_VERSION = 'v2.4.0';
-export const APP_RELEASE_DATE = '2026-07-02';
+export const APP_RELEASE_DATE = '2026-07-03';
 export const APP_YEAR = '2026';
 export const APP_VERSION_LABEL = `${APP_VERSION} · ${APP_RELEASE_DATE}`;
 export const FEATURE_SUMMARY = '绑骨模型 · 姿势编辑 · 日历 · 工具 · 站点';
@@ -91,7 +91,7 @@ export const FEATURE_CATALOG = [
     items: [
       '首次使用：模型窗口右下角隐蔽光点，点开完整分步教程',
       '关于页「上手小提示」可再次播放教程动画',
-      '7 月 4 日生日：当年首次启动播放祝福信 + 点击开箱 + 模型登场',
+        '7 月 4 日生日：当年首次启动播放祝福信 + 点击拆开礼物 + 模型登场',
       '生日彩蛋：Konami 代码、连戳、头像点击等隐藏反应',
       '托盘图标右键：显示/隐藏、控制中心、穿透、退出',
       '右键快捷菜单：玻璃拟态按钮、状态 Chip、帮助提示',
@@ -106,7 +106,7 @@ export const FEATURE_CATALOG = [
 export const RELEASE_NOTES = [
   {
     version: 'v2.4.0',
-    date: '2026-07-02',
+    date: '2026-07-03',
     title: '控制中心 · 姿势编辑器 · 界面升级',
     sections: [
       {
@@ -131,7 +131,7 @@ export const RELEASE_NOTES = [
         items: [
           '右键快捷菜单按钮升级为玻璃拟态 + 渐变描边 + 悬停动效',
           '键盘反馈 overlay 全面重设计：奶油玻璃外壳、粉蓝渐变描边、柔和按键动效',
-          '版本标签显示发布日期 2026-07-02',
+          '版本标签显示发布日期 2026-07-03',
         ],
       },
     ],
@@ -153,7 +153,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.3.2',
-    date: '2026-06-28',
+    date: '2026-06-29',
     title: '绑骨模型 · 眼神修复',
     sections: [
       {
@@ -191,7 +191,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.3.0',
-    date: '2026-06',
+    date: '2026-06-25',
     title: '生活主题 · 课表 · 天气',
     sections: [{
       title: '更新',

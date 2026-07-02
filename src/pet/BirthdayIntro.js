@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { BIRTHDAY } from './birthdayConfig.js';
 
 /**
- * 生日当天首次启动 · 祝福动画 + 礼盒开箱 + 模型登场
+ * 生日当天首次启动 · 信封祝福 + 礼盒开箱 + 模型登场
  */
 export class BirthdayIntro {
   constructor({ root, canvas, fx }) {
@@ -19,6 +19,8 @@ export class BirthdayIntro {
     const wishLines = BIRTHDAY.wishes
       .map((line) => `<p class="bi-wish-line">${line}</p>`)
       .join('');
+    const monthPad = String(BIRTHDAY.month).padStart(2, '0');
+    const dayPad = String(BIRTHDAY.day).padStart(2, '0');
 
     const el = document.createElement('div');
     el.id = 'birthday-intro';
@@ -26,28 +28,63 @@ export class BirthdayIntro {
     el.setAttribute('data-ui-overlay', '');
     el.innerHTML = `
       <div class="bi-aurora" aria-hidden="true"></div>
+      <div class="bi-bokeh" aria-hidden="true"></div>
+      <div class="bi-petals" aria-hidden="true"></div>
       <div class="bi-hearts" aria-hidden="true"></div>
       <div class="bi-sparkles" aria-hidden="true"></div>
+      <div class="bi-light-beam" aria-hidden="true"></div>
+
       <div class="bi-copy">
-        <div class="bi-letter">
+        <div class="bi-envelope" data-bi-envelope>
+          <div class="bi-envelope-shadow" aria-hidden="true"></div>
+          <div class="bi-envelope-back"></div>
+          <div class="bi-envelope-paper"></div>
+          <div class="bi-envelope-flap">
+            <div class="bi-envelope-flap-inner"></div>
+          </div>
+          <div class="bi-envelope-seal" aria-hidden="true">
+            <span class="bi-envelope-seal-glow"></span>
+            <span class="bi-envelope-seal-mark">✦</span>
+          </div>
+          <div class="bi-postmark" aria-hidden="true">
+            <span class="bi-postmark-ring"></span>
+            <span class="bi-postmark-date">${monthPad} · ${dayPad}</span>
+            <span class="bi-postmark-label">BIRTHDAY</span>
+          </div>
+        </div>
+
+        <div class="bi-letter" data-bi-letter hidden>
+          <div class="bi-letter-glow" aria-hidden="true"></div>
+          <div class="bi-letter-texture" aria-hidden="true"></div>
+          <div class="bi-ribbon-corner bi-ribbon-corner--tl" aria-hidden="true"></div>
+          <div class="bi-ribbon-corner bi-ribbon-corner--br" aria-hidden="true"></div>
+          <div class="bi-wax-seal" aria-hidden="true">
+            <span class="bi-wax-seal-mark">✦</span>
+          </div>
           <div class="bi-letter-edge" aria-hidden="true"></div>
-          <p class="bi-eyebrow">${BIRTHDAY.month} 月 ${BIRTHDAY.day} 日 · 特别的一天</p>
-          <p class="bi-dear">Dear <span class="bi-name">${BIRTHDAY.recipient}</span></p>
+          <p class="bi-eyebrow">${BIRTHDAY.subtitle}</p>
+          <p class="bi-dear">致 <span class="bi-name">${BIRTHDAY.recipient}</span></p>
           <h1 class="bi-title">生日快乐</h1>
+          <p class="bi-title-en">${BIRTHDAY.titleEn}</p>
           <div class="bi-wish">${wishLines}</div>
+          <p class="bi-closing">${BIRTHDAY.closing}</p>
           <div class="bi-sign">
-            <span class="bi-seal" aria-hidden="true">✦</span>
-            <p class="bi-from">— ${BIRTHDAY.creator}</p>
+            <div class="bi-sign-text">
+              <p class="bi-from">— ${BIRTHDAY.creator}</p>
+              <p class="bi-from-note">${BIRTHDAY.creatorNote}</p>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="bi-stage">
         <div class="bi-gift-wrap" data-bi-gift-wrap>
           <div class="bi-gift-glow"></div>
+          <div class="bi-gift-shimmer" aria-hidden="true"></div>
           <button type="button" class="bi-open-gift" data-bi-open hidden>
             <span class="bi-open-gift-ring" aria-hidden="true"></span>
             <span class="bi-open-gift-icon">🎁</span>
-            <span class="bi-open-gift-text">轻触打开礼物</span>
+            <span class="bi-open-gift-text">${BIRTHDAY.openGiftLabel}</span>
           </button>
           <div class="bi-gift">
             <div class="bi-gift-lid">
@@ -63,17 +100,22 @@ export class BirthdayIntro {
               <span class="bi-ribbon bi-ribbon--h"></span>
             </div>
             <div class="bi-gift-burst"></div>
+            <div class="bi-gift-spark" aria-hidden="true"></div>
           </div>
         </div>
       </div>
-      <button type="button" class="bi-skip" data-bi-skip hidden>轻触跳过</button>
+      <button type="button" class="bi-skip" data-bi-skip hidden>${BIRTHDAY.skipLabel}</button>
     `;
     this.root.appendChild(el);
     this.el = el;
     this._sparklesEl = el.querySelector('.bi-sparkles');
     this._heartsEl = el.querySelector('.bi-hearts');
-    this._spawnSparkles(28);
-    this._spawnHearts(8);
+    this._petalsEl = el.querySelector('.bi-petals');
+    this._bokehEl = el.querySelector('.bi-bokeh');
+    this._spawnSparkles(32);
+    this._spawnHearts(10);
+    this._spawnPetals(14);
+    this._spawnBokeh(6);
 
     const skip = el.querySelector('[data-bi-skip]');
     skip?.addEventListener('click', (e) => {
@@ -120,7 +162,36 @@ export class BirthdayIntro {
       h.style.animationDelay = `${Math.random() * 5}s`;
       h.style.animationDuration = `${4.5 + Math.random() * 3}s`;
       h.style.fontSize = `${8 + Math.random() * 8}px`;
+      h.style.setProperty('--drift', `${-20 + Math.random() * 40}px`);
       this._heartsEl.appendChild(h);
+    }
+  }
+
+  _spawnPetals(count) {
+    if (!this._petalsEl) return;
+    for (let i = 0; i < count; i += 1) {
+      const p = document.createElement('span');
+      p.className = 'bi-petal';
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.animationDelay = `${Math.random() * 6}s`;
+      p.style.animationDuration = `${5 + Math.random() * 4}s`;
+      p.style.setProperty('--drift', `${-30 + Math.random() * 60}px`);
+      p.style.setProperty('--rot', `${Math.random() * 360}deg`);
+      this._petalsEl.appendChild(p);
+    }
+  }
+
+  _spawnBokeh(count) {
+    if (!this._bokehEl) return;
+    for (let i = 0; i < count; i += 1) {
+      const b = document.createElement('span');
+      b.className = 'bi-bokeh-dot';
+      b.style.left = `${10 + Math.random() * 80}%`;
+      b.style.top = `${8 + Math.random() * 75}%`;
+      b.style.width = `${40 + Math.random() * 80}px`;
+      b.style.height = b.style.width;
+      b.style.animationDelay = `${Math.random() * 3}s`;
+      this._bokehEl.appendChild(b);
     }
   }
 
@@ -129,13 +200,24 @@ export class BirthdayIntro {
     this._tl?.pause();
     if (this._openBtn) {
       this._openBtn.hidden = false;
-      gsap.fromTo(this._openBtn, { opacity: 0, scale: 0.88, y: 8 }, { opacity: 1, scale: 1, y: 0, duration: 0.55, ease: 'back.out(1.5)' });
+      gsap.fromTo(
+        this._openBtn,
+        { opacity: 0, scale: 0.88, y: 10 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)' },
+      );
     }
     this._giftWrap?.classList.add('is-waiting');
     gsap.to(this._giftWrap?.querySelector('.bi-gift-glow'), {
       opacity: 0.95,
-      scale: 1.22,
-      duration: 1.2,
+      scale: 1.28,
+      duration: 1.4,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+    });
+    gsap.to(this._giftWrap?.querySelector('.bi-gift-shimmer'), {
+      opacity: 0.85,
+      duration: 1.1,
       repeat: -1,
       yoyo: true,
       ease: 'sine.inOut',
@@ -145,7 +227,10 @@ export class BirthdayIntro {
   _resumeGiftOpen() {
     if (this._giftGateDone || this._done) return;
     this._giftGateDone = true;
-    gsap.killTweensOf(this._giftWrap?.querySelector('.bi-gift-glow'));
+    gsap.killTweensOf([
+      this._giftWrap?.querySelector('.bi-gift-glow'),
+      this._giftWrap?.querySelector('.bi-gift-shimmer'),
+    ]);
     if (this._openBtn) {
       gsap.to(this._openBtn, {
         opacity: 0,
@@ -157,7 +242,7 @@ export class BirthdayIntro {
       });
     }
     this._giftWrap?.classList.remove('is-waiting');
-    this.fx?.burstConfetti?.({ count: 24, duration: 1.6 });
+    this.fx?.burstConfetti?.({ count: 32, duration: 1.8 });
     this._tl?.play();
   }
 
@@ -166,26 +251,39 @@ export class BirthdayIntro {
       this._resolve = resolve;
       this._done = false;
       this._giftGateDone = false;
+
       const copy = this.el.querySelector('.bi-copy');
-      const letter = this.el.querySelector('.bi-letter');
+      const envelope = this.el.querySelector('[data-bi-envelope]');
+      const letter = this.el.querySelector('[data-bi-letter]');
+      const flap = this.el.querySelector('.bi-envelope-flap');
+      const seal = this.el.querySelector('.bi-envelope-seal');
+      const postmark = this.el.querySelector('.bi-postmark');
       const stage = this.el.querySelector('.bi-stage');
       const gift = this.el.querySelector('.bi-gift');
       const lid = this.el.querySelector('.bi-gift-lid');
       const glow = this.el.querySelector('.bi-gift-glow');
       const burst = this.el.querySelector('.bi-gift-burst');
+      const giftSpark = this.el.querySelector('.bi-gift-spark');
+      const lightBeam = this.el.querySelector('.bi-light-beam');
       const skip = this.el.querySelector('[data-bi-skip]');
       const wishLines = this.el.querySelectorAll('.bi-wish-line');
+      const waxSeal = this.el.querySelector('.bi-wax-seal');
 
       gsap.set(this.el, { opacity: 0 });
       gsap.set([copy, stage], { opacity: 0 });
-      gsap.set(letter, { y: 24, scale: 0.96, rotateX: 8 });
-      gsap.set(gift, { y: 40, scale: 0.82 });
+      gsap.set(envelope, { opacity: 0, scale: 0.86, y: 28 });
+      gsap.set(letter, { opacity: 0, y: 18, scale: 0.92, rotateX: 12, xPercent: -50, left: '50%' });
+      gsap.set(flap, { rotateX: 0 });
+      gsap.set(seal, { scale: 1, opacity: 1 });
+      gsap.set(postmark, { opacity: 0, scale: 0.8 });
+      gsap.set(gift, { y: 48, scale: 0.78 });
+      gsap.set(lightBeam, { opacity: 0, scaleY: 0.3 });
       gsap.set(this.canvas, {
         opacity: 0,
-        scale: 0.08,
-        y: 48,
+        scale: 0.06,
+        y: 52,
         transformOrigin: '50% 88%',
-        filter: 'brightness(1.35) saturate(1.1)',
+        filter: 'brightness(1.4) saturate(1.12)',
       });
 
       this._tl = gsap.timeline({
@@ -193,73 +291,105 @@ export class BirthdayIntro {
       });
 
       this._tl
-        .to(this.el, { opacity: 1, duration: 0.9, ease: 'power2.out' })
-        .to(copy, { opacity: 1, duration: 0.65, ease: 'power2.out' }, 0.15)
-        .to(letter, { y: 0, scale: 1, rotateX: 0, duration: 0.85, ease: 'back.out(1.4)' }, 0.25)
+        .to(this.el, { opacity: 1, duration: 1, ease: 'power2.out' })
+        .to(copy, { opacity: 1, duration: 0.55, ease: 'power2.out' }, 0.12)
+        .to(envelope, { opacity: 1, scale: 1, y: 0, duration: 0.95, ease: 'back.out(1.5)' }, 0.25)
+        .to(postmark, { opacity: 0.72, scale: 1, duration: 0.5, ease: 'back.out(1.4)' }, 0.65)
+        .to(seal, { scale: 1.1, duration: 0.55, repeat: 2, yoyo: true, ease: 'sine.inOut' }, 0.85)
+        .to(seal, { opacity: 0, scale: 1.55, filter: 'blur(4px)', duration: 0.45, ease: 'power2.in' }, 2.05)
+        .to(flap, { rotateX: -168, duration: 0.95, ease: 'power3.inOut' }, 2.1)
+        .to(envelope, { y: 8, duration: 0.95, ease: 'power2.inOut' }, 2.1)
+        .call(() => {
+          letter.hidden = false;
+        }, null, 2.55)
+        .to(letter, { opacity: 1, y: -72, scale: 1, rotateX: 0, duration: 1, ease: 'power3.out' }, 2.55)
+        .to(envelope, { opacity: 0, y: 36, scale: 0.92, duration: 0.55, ease: 'power2.in' }, 2.85)
+        .call(() => {
+          if (envelope) {
+            envelope.style.visibility = 'hidden';
+            envelope.style.pointerEvents = 'none';
+          }
+        }, null, 2.95)
         .fromTo(
           this.el.querySelector('.bi-eyebrow'),
-          { y: 10, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.55, ease: 'power2.out' },
-          0.45,
+          { y: 10, opacity: 0, letterSpacing: '0.32em' },
+          { y: 0, opacity: 1, letterSpacing: '0.18em', duration: 0.6, ease: 'power2.out' },
+          3.15,
         )
         .fromTo(
           this.el.querySelector('.bi-dear'),
-          { y: 14, opacity: 0 },
+          { y: 12, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' },
-          0.65,
+          3.35,
+        )
+        .fromTo(
+          waxSeal,
+          { scale: 0.4, opacity: 0, rotate: -24 },
+          { scale: 1, opacity: 1, rotate: 0, duration: 0.65, ease: 'back.out(2)' },
+          3.45,
         )
         .fromTo(
           this.el.querySelector('.bi-title'),
-          { y: 32, opacity: 0, scale: 0.86 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.65)' },
-          0.85,
+          { y: 28, opacity: 0, scale: 0.88 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.85, ease: 'back.out(1.7)' },
+          3.65,
+        )
+        .fromTo(
+          this.el.querySelector('.bi-title-en'),
+          { y: 8, opacity: 0 },
+          { y: 0, opacity: 0.72, duration: 0.45, ease: 'power2.out' },
+          3.95,
         )
         .fromTo(
           wishLines,
-          { y: 12, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.45, stagger: 0.18, ease: 'power2.out' },
-          1.25,
+          { y: 14, opacity: 0, filter: 'blur(3px)' },
+          { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.55, stagger: 0.22, ease: 'power2.out' },
+          4.15,
+        )
+        .fromTo(
+          this.el.querySelector('.bi-closing'),
+          { y: 10, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' },
+          4.95,
         )
         .fromTo(
           this.el.querySelector('.bi-sign'),
-          { opacity: 0, y: 8 },
-          { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' },
-          1.95,
+          { opacity: 0, x: 12 },
+          { opacity: 1, x: 0, duration: 0.55, ease: 'power2.out' },
+          5.15,
         )
-        .call(() => this.fx?.burstConfetti?.({ count: 56, duration: 3.4 }), null, 2.05)
-        .to(stage, { opacity: 1, duration: 0.55, ease: 'power2.out' }, 2.45)
-        .to(gift, { y: 0, scale: 1, duration: 1.15, ease: 'back.out(1.35)' }, 2.5)
-        .to(glow, { opacity: 0.9, scale: 1.18, duration: 0.85, ease: 'sine.inOut' }, 2.75)
-        .call(() => this._enterGiftWaitGate(), null, 3.55)
-        .to(lid, { rotateX: -118, y: -6, duration: 0.9, ease: 'power3.inOut' }, 3.65)
-        .to(burst, { opacity: 1, scale: 1.65, duration: 0.38, ease: 'power2.out' }, 3.85)
-        .to(burst, { opacity: 0, scale: 2.3, duration: 0.55, ease: 'power2.in' }, 4.25)
-        .call(() => this.fx?.burstConfetti?.({ count: 80, duration: 3.8 }), null, 3.9)
+        .call(() => this.fx?.burstConfetti?.({ count: 48, duration: 3.2 }), null, 5.25)
+        .to(stage, { opacity: 1, duration: 0.55, ease: 'power2.out' }, 5.55)
+        .to(gift, { y: 0, scale: 1, duration: 1.2, ease: 'back.out(1.4)' }, 5.6)
+        .to(glow, { opacity: 0.88, scale: 1.2, duration: 0.9, ease: 'sine.inOut' }, 5.85)
+        .to(lightBeam, { opacity: 0.55, scaleY: 1, duration: 0.85, ease: 'power2.out' }, 5.9)
+        .call(() => this._enterGiftWaitGate(), null, 6.65)
+        .to(lid, { rotateX: -122, y: -8, duration: 0.95, ease: 'power3.inOut' }, 6.75)
+        .to(burst, { opacity: 1, scale: 1.75, duration: 0.42, ease: 'power2.out' }, 6.95)
+        .to(giftSpark, { opacity: 1, scale: 1.4, duration: 0.35, ease: 'power2.out' }, 6.98)
+        .to(burst, { opacity: 0, scale: 2.4, duration: 0.55, ease: 'power2.in' }, 7.35)
+        .to(giftSpark, { opacity: 0, scale: 2, duration: 0.5, ease: 'power2.in' }, 7.35)
+        .call(() => this.fx?.burstConfetti?.({ count: 88, duration: 4.2 }), null, 7)
         .to(
           this.canvas,
-          {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            duration: 1.4,
-            ease: 'power3.out',
-          },
-          3.95,
+          { opacity: 1, scale: 1, y: 0, duration: 1.5, ease: 'power3.out' },
+          7.05,
         )
         .to(
           this.canvas,
-          { filter: 'brightness(1) saturate(1)', duration: 1.2, ease: 'power2.out' },
-          3.95,
+          { filter: 'brightness(1) saturate(1)', duration: 1.3, ease: 'power2.out' },
+          7.05,
         )
-        .to(copy, { opacity: 0, y: -20, duration: 0.7, ease: 'power2.in' }, 4.85)
-        .to(gift, { opacity: 0, y: 30, scale: 0.92, duration: 0.75, ease: 'power2.in' }, 4.9)
-        .to(glow, { opacity: 0, duration: 0.5 }, 4.9)
-        .to(this.el, { opacity: 0, duration: 0.8, ease: 'power2.inOut' }, 5.55);
+        .to(lightBeam, { opacity: 0, duration: 0.6, ease: 'power2.in' }, 7.4)
+        .to(copy, { opacity: 0, y: -24, duration: 0.75, ease: 'power2.in' }, 8.05)
+        .to(gift, { opacity: 0, y: 32, scale: 0.9, duration: 0.8, ease: 'power2.in' }, 8.1)
+        .to(glow, { opacity: 0, duration: 0.5 }, 8.1)
+        .to(this.el, { opacity: 0, duration: 0.85, ease: 'power2.inOut' }, 8.75);
 
       window.setTimeout(() => {
         if (skip) skip.hidden = false;
-        gsap.fromTo(skip, { opacity: 0 }, { opacity: 0.6, duration: 0.45 });
-      }, 2800);
+        gsap.fromTo(skip, { opacity: 0, y: 6 }, { opacity: 0.65, y: 0, duration: 0.5 });
+      }, 3200);
     });
   }
 
@@ -278,7 +408,7 @@ export class BirthdayIntro {
     if (this.el) {
       gsap.set(this.el, { opacity: 0, pointerEvents: 'none' });
     }
-    if (skipped) this.fx?.burstConfetti?.({ count: 40, duration: 2.2 });
+    if (skipped) this.fx?.burstConfetti?.({ count: 44, duration: 2.4 });
     this._resolve?.();
   }
 

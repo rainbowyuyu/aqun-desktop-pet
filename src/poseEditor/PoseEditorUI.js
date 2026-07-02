@@ -254,7 +254,7 @@ export class PoseEditorUI {
 
     this._updateViewportToolbar();
     if (!silent) {
-      this.setStatus(next === 'rotate' ? '旋转工具 — 拖拽色环调整骨骼' : '移动工具 — 拖拽箭头调整骨骼位置');
+      this.setStatus(next === 'rotate' ? '旋转工具 — 拖拽 Gizmo 色环旋转骨骼' : '移动工具 — 拖拽 Gizmo 箭头沿 XYZ 移动');
     }
   }
 
@@ -270,11 +270,12 @@ export class PoseEditorUI {
       return;
     }
     const toolHint = tool === 'rotate'
-      ? '<span class="pe-toolbar-chip pe-toolbar-chip--accent">拖拽色环旋转</span>'
-      : '<span class="pe-toolbar-chip pe-toolbar-chip--accent">拖拽箭头移动</span>';
+      ? '<span class="pe-toolbar-chip pe-toolbar-chip--accent">拖拽色环旋转 XYZ</span>'
+      : '<span class="pe-toolbar-chip pe-toolbar-chip--accent">拖拽箭头移动 XYZ</span>';
     this.els.viewportToolbar.innerHTML = `
-      <span class="pe-toolbar-chip">左键点选骨骼</span>
+      <span class="pe-toolbar-chip">点选骨骼方框/圆环</span>
       ${toolHint}
+      <span class="pe-toolbar-chip">中键旋转视角 · 右键平移</span>
       <span class="pe-toolbar-chip">G 移动 · R 旋转</span>`;
   }
 
@@ -643,6 +644,7 @@ export class PoseEditorUI {
   refreshBoneEditor(name) {
     if (name !== this.selectedBone) return;
     this.scene.pose.syncEulerFromBone(name);
+    this.scene.pose.syncPositionFromBone(name);
     this._loadBoneEditor(name);
   }
 

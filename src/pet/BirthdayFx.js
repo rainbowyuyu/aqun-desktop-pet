@@ -1,4 +1,14 @@
-const CONFETTI_COLORS = ['#e898a8', '#98c0e8', '#a8e8c8', '#e8c898', '#f8d0e8', '#c8e8f8'];
+const CONFETTI_COLORS = [
+  '#e898a8',
+  '#f0c878',
+  '#98c0e8',
+  '#a8e8c8',
+  '#e8c898',
+  '#f8d0e8',
+  '#c8e8f8',
+  '#ffd8e8',
+  '#d4b8f0',
+];
 
 export class BirthdayFx {
   constructor({ appRoot }) {
@@ -20,13 +30,15 @@ export class BirthdayFx {
 
     for (let i = 0; i < count; i += 1) {
       const piece = document.createElement('span');
-      piece.className = 'birthday-confetti';
+      const shape = i % 5 === 0 ? 'is-star' : i % 4 === 0 ? 'is-heart' : i % 3 === 0 ? 'is-ring' : '';
+      piece.className = ['birthday-confetti', shape].filter(Boolean).join(' ');
       piece.style.left = `${Math.random() * 100}%`;
       piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-      piece.style.animationDuration = `${1.6 + Math.random() * 1.4}s`;
-      piece.style.animationDelay = `${Math.random() * 0.35}s`;
-      piece.style.setProperty('--drift', `${-40 + Math.random() * 80}px`);
-      piece.style.setProperty('--spin', `${180 + Math.random() * 540}deg`);
+      piece.style.animationDuration = `${2 + Math.random() * 1.8}s`;
+      piece.style.animationDelay = `${Math.random() * 0.45}s`;
+      piece.style.setProperty('--drift', `${-50 + Math.random() * 100}px`);
+      piece.style.setProperty('--spin', `${180 + Math.random() * 720}deg`);
+      piece.style.setProperty('--sway', `${-1 + Math.random() * 2}`);
       this._confettiLayer.appendChild(piece);
     }
 
@@ -41,7 +53,7 @@ export class BirthdayFx {
     clearTimeout(this._flashTimer);
     this._flashTimer = setTimeout(() => {
       this.appRoot?.classList.remove('birthday-rainbow-flash');
-    }, 1800);
+    }, 2200);
   }
 
   dispose() {

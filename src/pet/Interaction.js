@@ -338,6 +338,11 @@ export class Interaction {
       const dx = e.screenX - this._leftStart.x;
       const dy = e.screenY - this._leftStart.y;
       if (dx * dx + dy * dy > DRAG_THRESHOLD * DRAG_THRESHOLD) {
+        this._cancelResizeFrame();
+        this._resizing = false;
+        this._lastPreviewScale = null;
+        this._pendingScale = null;
+        this.appRoot?.classList.remove('is-resizing');
         this._leftDragging = true;
         this._gestureWasDrag = true;
         this.appRoot?.classList.add('is-dragging');

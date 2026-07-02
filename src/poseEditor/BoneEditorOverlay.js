@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 
-const PICK_RADIUS = 0.045;
+const PICK_RADIUS = 0.055;
 
 function estimateBoneBoxSize(bone) {
   const child = bone.children.find((c) => c.isBone);
@@ -13,35 +13,107 @@ function estimateBoneBoxSize(bone) {
   return { halfLen, width };
 }
 
-function createBoneBoxHelper(bone, { color = 0x5eb8ff, opacity = 0.42 } = {}) {
+function getBoneMidpoint(bone) {
+  const child = bone.children.find((c) => c.isBone);
+  if (child) return child.position.clone().multiplyScalar(0.5);
+  return new THREE.Vector3();
+}
+
+function getBoneAxis(bone) {
+  const child = bone.children.find((c) => c.isBone);
+  if (child && child.position.lengthSq() > 1e-8) {
+    return child.position.clone().normalize();
+  }
+  return new THREE.Vector3(0, 1, 0);
+}
+
+/** Blender 风格：线框盒 + 可点击面 + 旋转环 */
+function createBoneWidget(bone, { selected = false } = {}) {
   const { halfLen, width } = estimateBoneBoxSize(bone);
-  const geom = new THREE.BoxGeometry(width, halfLen * 2, width);
-  const edges = new THREE.EdgesGeometry(geom);
+  const group = new THREE.Group();
+  group.userData.boneName = bone.name;
+  group.userData.isBoneWidget = true;
+  group.position.copy(getBoneMidpoint(bone));
+
+  const boxW = width * 1.15;
+  const boxH = halfLen * 2.25;
+  const boxGeom = new THREE.BoxGeometry(boxW, boxH, boxW);
+
+  const lineColor = selected ? 0xffb84d : 0x48d8d8;
+  const edges = new THREE.EdgesGeometry(boxGeom);
   const lines = new THREE.LineSegments(
     edges,
     new THREE.LineBasicMaterial({
-      color,
+      color: lineColor,
       transparent: true,
-      opacity,
+      opacity: selected ? 0.98 : 0.72,
       depthTest: false,
     }),
   );
   lines.renderOrder = 998;
 
-  const child = bone.children.find((c) => c.isBone);
-  if (child) {
-    lines.position.copy(child.position).multiplyScalar(0.5);
-  }
+  const pickMat = new THREE.MeshBasicMaterial({
+    color: lineColor,
+    transparent: true,
+    opacity: 0.12,
+    depthTest: false,
+    side: THREE.DoubleSide,
+  });
+  const pickBox = new THREE.Mesh(boxGeom, pickMat);
+  pickBox.userData.boneName = bone.name;
+  pickBox.userData.pickRole = 'box';
 
-  const group = new THREE.Group();
+  const ringRadius = Math.max(boxW * 1.35, boxH * 0.42);
+  const tube = Math.max(0.0025, ringRadius * 0.055);
+  const ringGeom = new THREE.TorusGeometry(ringRadius, tube, 10, 40);
+  const ringColor = selected ? 0xffcc66 : 0x5ee8e8;
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: ringColor,
+    transparent: true,
+    opacity: selected ? 0.9 : 0.52,
+    depthTest: false,
+  });
+  const ring = new THREE.Mesh(ringGeom, ringMat);
+  ring.userData.boneName = bone.name;
+  ring.userData.pickRole = 'ring';
+
+  const axis = getBoneAxis(bone);
+  const up = new THREE.Vector3(0, 1, 0);
+  const quat = new THREE.Quaternion().setFromUnitVectors(up, axis);
+  ring.quaternion.copy(quat);
+
+  const ring2 = new THREE.Mesh(ringGeom, ringMat.clone());
+  ring2.userData.boneName = bone.name;
+  ring2.userData.pickRole = 'ring';
+  ring2.quaternion.copy(quat);
+  ring2.rotateZ(Math.PI / 2);
+
   group.add(lines);
-  group.userData.boneName = bone.name;
+  group.add(pickBox);
+  group.add(ring);
+  group.add(ring2);
+
   bone.add(group);
-  return group;
+
+  return {
+    group,
+    lines,
+    pickBox,
+    rings: [ring, ring2],
+    dispose: () => {
+      edges.dispose();
+      boxGeom.dispose();
+      ringGeom.dispose();
+      lines.material.dispose();
+      pickMat.dispose();
+      ringMat.dispose();
+      group.parent?.remove(group);
+    },
+  };
 }
 
 /**
- * 3D 骨骼可视化 + 模式切换 + 框选 + Gizmo
+ * 3D 骨骼可视化 + Blender 风格控件 + TransformControls Gizmo
  */
 export class BoneEditorOverlay {
   constructor(scene, camera, canvas, pose, orbitControls) {
@@ -56,7 +128,7 @@ export class BoneEditorOverlay {
     this.settings = {
       showSkeleton: true,
       showBoneBoxes: true,
-      transformTool: 'translate',
+      transformTool: 'rotate',
     };
 
     this.onBoneSelect = null;
@@ -70,8 +142,8 @@ export class BoneEditorOverlay {
     this._skeletonHelper = null;
     this._selectMarker = null;
     this._transformControls = null;
-    this._boneBoxMap = new Map();
-    this._selectedBoxGroup = null;
+    this._widgetMap = new Map();
+    this._selectedWidget = null;
 
     this._onPointerDown = (e) => this._handlePointerDown(e);
     this.canvas.addEventListener('pointerdown', this._onPointerDown);
@@ -87,74 +159,97 @@ export class BoneEditorOverlay {
 
     if (skinned) {
       this._skeletonHelper = new THREE.SkeletonHelper(skinned);
-      this._skeletonHelper.material.color.set(0x5eb8ff);
+      this._skeletonHelper.material.color.set(0xff8844);
       this._skeletonHelper.material.transparent = true;
-      this._skeletonHelper.material.opacity = 0.55;
+      this._skeletonHelper.material.opacity = 0.62;
+      this._skeletonHelper.material.linewidth = 1;
       this.scene.add(this._skeletonHelper);
     }
 
     this._selectMarker = new THREE.Mesh(
-      new THREE.SphereGeometry(0.016, 14, 14),
+      new THREE.SphereGeometry(0.014, 12, 12),
       new THREE.MeshBasicMaterial({
         color: 0xffcc44,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.95,
         depthTest: false,
       }),
     );
-    this._selectMarker.renderOrder = 999;
+    this._selectMarker.renderOrder = 1001;
     this.scene.add(this._selectMarker);
     this._selectMarker.visible = false;
 
-    this._buildBoneBoxes();
+    this._buildBoneWidgets();
 
     this._transformControls = new TransformControls(this.camera, this.canvas);
-    this._transformControls.setMode(this.settings.transformTool === 'rotate' ? 'rotate' : 'translate');
     this._transformControls.setSpace('local');
-    this._transformControls.size = 0.72;
+    this._transformControls.size = 1.05;
+    this._transformControls.setMode(this._modeFromTool(this.settings.transformTool));
     this.scene.add(this._transformControls);
 
     this._transformControls.addEventListener('dragging-changed', (e) => {
+      this.orbitControls.enabled = !e.value;
       if (this.mode === 'edit') {
         this._pickEnabled = !e.value;
+      }
+      if (!e.value && this.selectedBone) {
+        this._syncBoneFromGizmo();
+        this.onBoneRotate?.(this.selectedBone);
       }
     });
 
     this._transformControls.addEventListener('objectChange', () => {
       if (!this.selectedBone || this.mode !== 'edit') return;
+      this._syncBoneFromGizmo();
       this.pose.finalize();
       this.onBoneRotate?.(this.selectedBone);
     });
 
+    this._configureOrbitForEdit();
     this.applySettings(this.settings);
     this._applyModeState();
   }
 
-  _buildBoneBoxes() {
-    this._clearBoneBoxes();
-    for (const bone of this.pose.listBones()) {
-      const group = createBoneBoxHelper(bone);
-      this._boneBoxMap.set(bone.name, group);
-    }
-    this._refreshBoneBoxVisibility();
+  _modeFromTool(tool) {
+    return tool === 'translate' ? 'translate' : 'rotate';
   }
 
-  _clearBoneBoxes() {
-    for (const group of this._boneBoxMap.values()) {
-      group.parent?.remove(group);
-      group.traverse((o) => {
-        o.geometry?.dispose?.();
-        o.material?.dispose?.();
-      });
+  _configureOrbitForEdit() {
+    this.orbitControls.mouseButtons = {
+      LEFT: null,
+      MIDDLE: THREE.MOUSE.ROTATE,
+      RIGHT: THREE.MOUSE.PAN,
+    };
+    this.orbitControls.enablePan = true;
+  }
+
+  _buildBoneWidgets() {
+    this._clearBoneWidgets();
+    for (const bone of this.pose.listBones()) {
+      const widget = createBoneWidget(bone);
+      this._widgetMap.set(bone.name, widget);
     }
-    this._boneBoxMap.clear();
-    if (this._selectedBoxGroup) {
-      this._selectedBoxGroup.parent?.remove(this._selectedBoxGroup);
-      this._selectedBoxGroup.traverse((o) => {
-        o.geometry?.dispose?.();
-        o.material?.dispose?.();
-      });
-      this._selectedBoxGroup = null;
+    this._refreshWidgetVisibility();
+  }
+
+  _clearBoneWidgets() {
+    for (const widget of this._widgetMap.values()) {
+      widget.dispose?.();
+    }
+    this._widgetMap.clear();
+    if (this._selectedWidget) {
+      this._selectedWidget.dispose?.();
+      this._selectedWidget = null;
+    }
+  }
+
+  _syncBoneFromGizmo() {
+    if (!this.selectedBone) return;
+    const mode = this._transformControls?.mode ?? 'rotate';
+    if (mode === 'translate') {
+      this.pose.syncPositionFromBone(this.selectedBone);
+    } else {
+      this.pose.syncEulerFromBone(this.selectedBone);
     }
   }
 
@@ -166,7 +261,7 @@ export class BoneEditorOverlay {
 
   _applyModeState() {
     const isPreview = this.mode === 'preview';
-    this.orbitControls.enabled = isPreview;
+    this.orbitControls.enabled = true;
     this._pickEnabled = !isPreview;
 
     if (isPreview && this._transformControls) {
@@ -176,7 +271,7 @@ export class BoneEditorOverlay {
       this.setSelectedBone(this.selectedBone);
     }
 
-    this._refreshBoneBoxVisibility();
+    this._refreshWidgetVisibility();
   }
 
   getMode() {
@@ -184,38 +279,36 @@ export class BoneEditorOverlay {
   }
 
   setTransformTool(tool) {
-    const mode = tool === 'rotate' ? 'rotate' : 'translate';
-    this.settings.transformTool = mode;
+    const mode = this._modeFromTool(tool);
+    this.settings.transformTool = mode === 'translate' ? 'translate' : 'rotate';
     if (this._transformControls) {
       this._transformControls.setMode(mode);
     }
   }
 
   getTransformTool() {
-    return this.settings.transformTool ?? 'translate';
+    return this.settings.transformTool ?? 'rotate';
   }
 
   applySettings(settings = {}) {
     this.settings = { ...this.settings, ...settings };
     if (this._transformControls) {
-      const mode = this.settings.transformTool === 'rotate' ? 'rotate' : 'translate';
-      this._transformControls.setMode(mode);
+      this._transformControls.setMode(this._modeFromTool(this.settings.transformTool));
     }
     if (this._skeletonHelper) {
       this._skeletonHelper.visible = !!this.settings.showSkeleton;
     }
-    this._refreshBoneBoxVisibility();
+    this._refreshWidgetVisibility();
   }
 
-  _refreshBoneBoxVisibility() {
+  _refreshWidgetVisibility() {
     const showAll = !!this.settings.showBoneBoxes && this.mode === 'edit';
-    for (const [name, group] of this._boneBoxMap) {
+    for (const [name, widget] of this._widgetMap) {
       const isSelected = name === this.selectedBone;
-      group.visible = showAll && !isSelected;
+      widget.group.visible = showAll && !isSelected;
     }
-
-    if (this._selectedBoxGroup) {
-      this._selectedBoxGroup.visible = !!this.selectedBone
+    if (this._selectedWidget) {
+      this._selectedWidget.group.visible = !!this.selectedBone
         && (this.settings.showBoneBoxes || this.mode === 'preview');
     }
   }
@@ -224,6 +317,11 @@ export class BoneEditorOverlay {
     this.selectedBone = name;
     const bone = name ? this.pose.getBone(name) : null;
 
+    if (this._selectedWidget) {
+      this._selectedWidget.dispose?.();
+      this._selectedWidget = null;
+    }
+
     if (this._selectMarker) {
       this._selectMarker.visible = !!bone;
       if (bone) {
@@ -231,35 +329,25 @@ export class BoneEditorOverlay {
       }
     }
 
-    if (this._selectedBoxGroup) {
-      this._selectedBoxGroup.parent?.remove(this._selectedBoxGroup);
-      this._selectedBoxGroup.traverse((o) => {
-        o.geometry?.dispose?.();
-        o.material?.dispose?.();
-      });
-      this._selectedBoxGroup = null;
-    }
-
     if (bone) {
-      this._selectedBoxGroup = createBoneBoxHelper(bone, {
-        color: 0xffcc44,
-        opacity: 0.95,
-      });
-      this._selectedBoxGroup.scale.set(1.12, 1.12, 1.12);
+      this._selectedWidget = createBoneWidget(bone, { selected: true });
+      this._selectedWidget.group.scale.set(1.08, 1.08, 1.08);
     }
 
     if (this._transformControls) {
       const canEdit = this.mode === 'edit' && bone && !this.pose.isLocked(name);
       if (canEdit) {
         this._transformControls.attach(bone);
+        this._transformControls.setMode(this._modeFromTool(this.settings.transformTool));
         this._transformControls.enabled = true;
+        this._transformControls.visible = true;
       } else {
         this._transformControls.detach();
         this._transformControls.enabled = false;
       }
     }
 
-    this._refreshBoneBoxVisibility();
+    this._refreshWidgetVisibility();
   }
 
   getBoneWorldPosition(name) {
@@ -298,7 +386,8 @@ export class BoneEditorOverlay {
       if (gizmoHits.length) return;
     }
 
-    const hit = this._pickBone(this._raycaster);
+    const meshHit = this._pickBoneFromWidgets(this._raycaster);
+    const hit = meshHit ?? this._pickBoneByJoint(this._raycaster);
     if (hit) {
       event.preventDefault();
       event.stopPropagation();
@@ -309,7 +398,22 @@ export class BoneEditorOverlay {
     }
   }
 
-  _pickBone(raycaster) {
+  _pickBoneFromWidgets(raycaster) {
+    const pickables = [];
+    for (const widget of this._widgetMap.values()) {
+      if (widget.group.visible) pickables.push(widget.pickBox, ...widget.rings);
+    }
+    if (this._selectedWidget?.group.visible) {
+      pickables.push(this._selectedWidget.pickBox, ...this._selectedWidget.rings);
+    }
+    if (!pickables.length) return null;
+
+    const hits = raycaster.intersectObjects(pickables, false);
+    if (!hits.length) return null;
+    return hits[0].object.userData.boneName ?? null;
+  }
+
+  _pickBoneByJoint(raycaster) {
     const bones = this.pose.listBones();
     if (!bones.length) return null;
 
@@ -337,7 +441,7 @@ export class BoneEditorOverlay {
   }
 
   disposeHelpers() {
-    this._clearBoneBoxes();
+    this._clearBoneWidgets();
     if (this._skeletonHelper) {
       this.scene.remove(this._skeletonHelper);
       this._skeletonHelper = null;

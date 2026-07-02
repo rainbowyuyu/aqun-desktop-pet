@@ -29,16 +29,26 @@ export function cloneLibrary(lib) {
   return JSON.parse(JSON.stringify(lib));
 }
 
+export function hasPositionOffset(pos, eps = 1e-4) {
+  if (!pos) return false;
+  return Math.abs(pos[0]) > eps || Math.abs(pos[1]) > eps || Math.abs(pos[2]) > eps;
+}
+
 /** 从 PoseController 导出单姿势 */
 export function exportPoseFromController(controller, id, name) {
   const bones = {};
   for (const bone of controller.listBones()) {
     const euler = controller.getBoneEuler(bone.name);
-    if (!euler || !hasEulerOffset(euler)) continue;
-    bones[bone.name] = {
+    const position = controller.getBonePosition(bone.name);
+    if (!hasEulerOffset(euler) && !hasPositionOffset(position)) continue;
+    const entry = {
       euler: [...euler],
       locked: controller.isLocked(bone.name),
     };
+    if (hasPositionOffset(position)) {
+      entry.position = [...position];
+    }
+    bones[bone.name] = entry;
   }
   return { id, name, bones };
 }

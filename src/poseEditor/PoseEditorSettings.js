@@ -8,7 +8,7 @@ export const DEFAULT_SETTINGS = {
   showHeadMeshes: true,
   showBodyMeshes: true,
   showOtherMeshes: true,
-  transformTool: 'translate',
+  transformTool: 'rotate',
   shortcuts: {
     toggleMode: 'Tab',
     previewMode: '1',
