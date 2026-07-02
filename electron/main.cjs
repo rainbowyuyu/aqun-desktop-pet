@@ -36,6 +36,7 @@ const {
   initContextPopup,
   showContextPopup,
   hideContextPopup,
+  resizeContextPopup,
 } = require('./contextPopup.cjs');
 const {
   initReminders,
@@ -881,10 +882,11 @@ function setupIpc() {
 
     const files = {
       aqun_rig: 'aqun_rig.glb',
-      aqun: 'aqun.glb',
-      aqun_pef: 'aqun_pef.glb',
-      aqun_tripo: 'aqun_tripo.glb',
-      ty: 'ty.glb',
+      ty_rig: 'ty_rig.glb',
+      aqun: 'aqun_rig.glb',
+      aqun_pef: 'aqun_rig.glb',
+      aqun_tripo: 'aqun_rig.glb',
+      ty: 'ty_rig.glb',
     };
 
     const file = files[id] || files.aqun_rig;
@@ -948,6 +950,11 @@ function setupIpc() {
 
   ipcMain.handle('close-context-popup', () => {
     hideContextPopup();
+    return true;
+  });
+
+  ipcMain.handle('resize-context-popup', (_event, contentHeight) => {
+    resizeContextPopup(contentHeight);
     return true;
   });
 

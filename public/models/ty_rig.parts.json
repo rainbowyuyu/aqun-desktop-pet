@@ -1,0 +1,36 @@
+{
+  "head": [
+    "tripo_part_0",
+    "tripo_part_3",
+    "tripo_part_9",
+    "tripo_part_10",
+    "tripo_part_15"
+  ],
+  "body": [
+    "tripo_part_1",
+    "tripo_part_2",
+    "tripo_part_4",
+    "tripo_part_5",
+    "tripo_part_6",
+    "tripo_part_7",
+    "tripo_part_8",
+    "tripo_part_11",
+    "tripo_part_12",
+    "tripo_part_13",
+    "tripo_part_14",
+    "tripo_part_16"
+  ],
+  "headBone": "head.x",
+  "neckBone": "neck.x",
+  "spineBone": "c_spine_02_bend.x",
+  "chestBone": "c_spine_03_bend.x",
+  "neckYRatio": 0.68,
+  "faceY": 0,
+  "clips": {
+    "idle": "idle",
+    "wave": "wave",
+    "poke": "poke",
+    "nod": "nod",
+    "sway": "sway"
+  }
+}

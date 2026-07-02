@@ -1,4 +1,4 @@
-import { PET_MODELS } from './modelRegistry.js';
+import { getAppearanceModels } from './modelRegistry.js';
 import { ModelPreview } from './ModelPreview.js';
 
 /** 三模型预览与切换 */
@@ -19,7 +19,7 @@ export class ModelPicker {
     this._mounted = true;
     this.container.innerHTML = '';
 
-    PET_MODELS.forEach((model) => {
+    getAppearanceModels().forEach((model) => {
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'aq-model-card';

@@ -191,7 +191,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.3.0',
-    date: '2026-06-25',
+    date: '2026-06-26',
     title: '生活主题 · 课表 · 天气',
     sections: [{
       title: '更新',
@@ -206,7 +206,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.2.2',
-    date: '2026-05',
+    date: '2026-06-26',
     title: '教程与生日视觉升级',
     sections: [{
       title: '更新',
@@ -220,7 +220,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.2.1',
-    date: '2026-05',
+    date: '2026-06-26',
     title: '动画预览测试入口',
     sections: [{
       title: '更新',
@@ -233,7 +233,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.2.0',
-    date: '2026-05',
+    date: '2026-06-26',
     title: '设置中心与分类重置',
     sections: [{
       title: '更新',
@@ -247,7 +247,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.1.2',
-    date: '2026-04',
+    date: '2026-06-26',
     title: '滑块百分比输入',
     sections: [{
       title: '更新',
@@ -260,7 +260,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.1.1',
-    date: '2026-04',
+    date: '2026-06-26',
     title: '日历右键与模型提醒',
     sections: [{
       title: '更新',
@@ -274,7 +274,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.1.0',
-    date: '2026-04',
+    date: '2026-06-26',
     title: '生日开箱祝福动画',
     sections: [{
       title: '更新',
@@ -288,7 +288,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.0.2',
-    date: '2026-03',
+    date: '2026-06-26',
     title: '首次使用教程',
     sections: [{
       title: '更新',
@@ -302,7 +302,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.0.1',
-    date: '2026-03',
+    date: '2026-06-26',
     title: '窗口拖动与实时缩放',
     sections: [{
       title: '更新',
@@ -316,7 +316,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v2.0.0',
-    date: '2026-03',
+    date: '2026-06-26',
     title: '独立控制中心',
     sections: [{
       title: '更新',
@@ -330,7 +330,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.5.2',
-    date: '2025-12',
+    date: '2026-06-25',
     title: 'Konami 彩蛋',
     sections: [{
       title: '更新',
@@ -343,7 +343,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.5.1',
-    date: '2025-12',
+    date: '2026-06-25',
     title: '生日秘密与连戳',
     sections: [{
       title: '更新',
@@ -356,7 +356,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.5.0',
-    date: '2025-11',
+    date: '2026-06-25',
     title: '联网热梗',
     sections: [{
       title: '更新',
@@ -369,7 +369,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.4.2',
-    date: '2025-11',
+    date: '2026-06-25',
     title: '科研站点页',
     sections: [{
       title: '更新',
@@ -382,7 +382,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.4.1',
-    date: '2025-10',
+    date: '2026-06-25',
     title: 'LaTeX 与学术小工具',
     sections: [{
       title: '更新',
@@ -395,7 +395,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.4.0',
-    date: '2025-10',
+    date: '2026-06-25',
     title: '小工具中心',
     sections: [{
       title: '更新',
@@ -409,7 +409,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.3.2',
-    date: '2025-09',
+    date: '2026-06-25',
     title: '节气与节日',
     sections: [{
       title: '更新',
@@ -422,7 +422,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.3.1',
-    date: '2025-09',
+    date: '2026-06-25',
     title: '日历组件',
     sections: [{
       title: '更新',
@@ -435,7 +435,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.3.0',
-    date: '2025-08',
+    date: '2026-06-25',
     title: '提醒系统',
     sections: [{
       title: '更新',
@@ -449,7 +449,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.2.3',
-    date: '2025-08',
+    date: '2026-06-25',
     title: '空闲话语',
     sections: [{
       title: '更新',
@@ -462,7 +462,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.2.2',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '三连击与 FSM',
     sections: [{
       title: '更新',
@@ -475,7 +475,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.2.1',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '位置锁定',
     sections: [{
       title: '更新',
@@ -487,7 +487,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.2.0',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '鼠标穿透',
     sections: [{
       title: '更新',
@@ -500,7 +500,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.1.3',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '窗口置顶',
     sections: [{
       title: '更新',
@@ -512,7 +512,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.1.2',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '透明度与缩放',
     sections: [{
       title: '更新',
@@ -525,7 +525,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.1.1',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '模型切换',
     sections: [{
       title: '更新',
@@ -538,7 +538,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.1.0',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '设置面板',
     sections: [{
       title: '更新',
@@ -551,7 +551,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.0.5',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '托盘与右键菜单',
     sections: [{
       title: '更新',
@@ -564,7 +564,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.0.4',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '眼神灵敏度',
     sections: [{
       title: '更新',
@@ -576,7 +576,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.0.3',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '键盘可视化',
     sections: [{
       title: '更新',
@@ -590,7 +590,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.0.2',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '气泡 UI',
     sections: [{
       title: '更新',
@@ -602,7 +602,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.0.1',
-    date: '2025-07',
+    date: '2026-06-25',
     title: '加载体验',
     sections: [{
       title: '更新',
@@ -615,7 +615,7 @@ export const RELEASE_NOTES = [
   },
   {
     version: 'v1.0.0',
-    date: '2025-07-04',
+    date: '2026-06-26',
     title: '首发 · 阿群桌面模型',
     sections: [{
       title: '首发',

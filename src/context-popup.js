@@ -57,6 +57,7 @@ const menu = new ContextMenu({
   root: document.getElementById('ctx-menu'),
   panel: document.querySelector('.ctx-panel'),
   popupMode: true,
+  onLayoutChange: (height) => window.aqunPet?.resizeContextPopup?.(height),
   onAction: async (action) => {
     if (action === 'open-settings') {
       await window.aqunPet?.openSettingsFromPopup?.();

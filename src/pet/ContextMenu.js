@@ -1,10 +1,11 @@
 /** 自定义右键快捷面板 */
 export class ContextMenu {
-  constructor({ root, panel, onAction, popupMode = false }) {
+  constructor({ root, panel, onAction, popupMode = false, onLayoutChange = null }) {
     this.root = root;
     this.panel = panel;
     this.onAction = onAction;
     this.popupMode = popupMode;
+    this.onLayoutChange = onLayoutChange;
     this._open = false;
     this._anchor = { x: 0, y: 0 };
 
@@ -49,6 +50,15 @@ export class ContextMenu {
       this._tipOpen = key;
       btn?.classList.add('is-active');
     }
+    this._notifyLayoutChange();
+  }
+
+  _notifyLayoutChange() {
+    if (!this.popupMode || !this.onLayoutChange) return;
+    requestAnimationFrame(() => {
+      const height = this.panel?.getBoundingClientRect().height ?? 0;
+      if (height > 0) this.onLayoutChange(height);
+    });
   }
 
   _closeTips() {
@@ -59,6 +69,7 @@ export class ContextMenu {
       el.classList.remove('is-active');
     });
     this._tipOpen = null;
+    this._notifyLayoutChange();
   }
 
   isOpen() {
@@ -71,6 +82,7 @@ export class ContextMenu {
     this._syncLabels(settings);
     this._open = true;
     if (this.root) this.root.hidden = false;
+    this._notifyLayoutChange();
   }
 
   async show(clientX, clientY, settings = {}) {

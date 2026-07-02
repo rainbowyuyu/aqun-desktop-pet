@@ -31,7 +31,6 @@ desktop.ini
 # 开发探测用模型（勿提交）
 public/models/_*.glb
 public/models/_probe.glb
-public/models/ty.glb
 
 # 用户数据（若误放在项目目录）
 settings.json

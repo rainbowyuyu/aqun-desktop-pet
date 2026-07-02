@@ -1,4 +1,0 @@
-{
-  "neckYRatio": 0.68,
-  "_comment": "head/body 留空则自动按 GLB 节点名匹配。运行 node scripts/inspect-glb-parts.cjs path/to/model.glb 查看部件名"
-}

@@ -71,6 +71,9 @@ contextBridge.exposeInMainWorld('aqunPet', {
 
   closeContextPopup: () => ipcRenderer.invoke('close-context-popup'),
 
+  resizeContextPopup: (contentHeight) =>
+    ipcRenderer.invoke('resize-context-popup', contentHeight),
+
   openSettingsFromPopup: () => ipcRenderer.invoke('open-settings-from-popup'),
 
   onContextPopupShow: (callback) => {

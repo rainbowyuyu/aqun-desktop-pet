@@ -117,24 +117,45 @@ export class SettingsPanel {
 
   _bindUpdateControls() {
     const statusEl = this.panel?.querySelector('[data-update-status]');
+    const statusTextEl = this.panel?.querySelector('[data-update-status-text]');
+    const statusIconEl = this.panel?.querySelector('[data-update-status-icon]');
+    const currentVerEl = this.panel?.querySelector('[data-update-current-ver]');
+    const remoteVerEl = this.panel?.querySelector('[data-update-remote-ver]');
+    const remoteVerBox = this.panel?.querySelector('.aq-update-ver--remote');
     const checkBtn = this.panel?.querySelector('[data-check-update]');
     const repoBtn = this.panel?.querySelector('[data-open-repo]');
     const releasesBtn = this.panel?.querySelector('[data-open-releases]');
 
+    const STATUS_ICONS = {
+      normal: 'ℹ',
+      pending: '',
+      ok: '✓',
+      update: '↑',
+      error: '!',
+    };
+
     const setStatus = (text, tone = 'normal') => {
       if (!statusEl) return;
-      statusEl.textContent = text;
       statusEl.dataset.tone = tone;
+      if (statusTextEl) statusTextEl.textContent = text;
+      if (statusIconEl) statusIconEl.textContent = STATUS_ICONS[tone] ?? STATUS_ICONS.normal;
+    };
+
+    const setVersions = (current, remote, hasUpdate = false) => {
+      if (currentVerEl) currentVerEl.textContent = current ? `v${current}` : '—';
+      if (remoteVerEl) remoteVerEl.textContent = remote ? `v${remote}` : '—';
+      remoteVerBox?.classList.toggle('is-highlight', Boolean(hasUpdate));
     };
 
     const loadRepoInfo = async () => {
       try {
         const info = await window.aqunPet?.getRepoInfo?.();
         if (info?.currentVersion) {
-          setStatus(`当前 v${info.currentVersion} · 仓库 ${info.owner}/${info.repo}`);
+          setVersions(info.currentVersion, null);
+          setStatus(`已加载 · 仓库 ${info.owner}/${info.repo}`, 'normal');
         }
       } catch {
-        setStatus('当前版本信息不可用');
+        setStatus('当前版本信息不可用', 'error');
       }
     };
     loadRepoInfo();
@@ -150,9 +171,10 @@ export class SettingsPanel {
           setStatus(`检查失败：${res?.error || '网络错误'}`, 'error');
           return;
         }
+        setVersions(res.currentVersion, res.latestVersion, res.hasUpdate);
         if (res.hasUpdate) {
           setStatus(
-            `发现新版本 v${res.latestVersion}（当前 v${res.currentVersion}）· 请在仓库拉取后运行 npm run update:build`,
+            `发现新版本 v${res.latestVersion} · 请在仓库拉取后运行 npm run update:build`,
             'update',
           );
         } else {

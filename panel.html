@@ -160,7 +160,7 @@
                   <header class="aq-settings-card-head">
                     <div>
                       <h3 class="aq-settings-card-title">选择模型</h3>
-                      <p class="aq-settings-card-desc">点卡片切换 · 绑骨模型支持眼神与手势</p>
+                      <p class="aq-settings-card-desc">仅绑骨模型 · 眼神跟随 · 姿势编辑</p>
                     </div>
                   </header>
                   <div id="model-picker" class="aq-model-grid"></div>
@@ -373,20 +373,59 @@
                       <p class="aq-settings-card-desc">对比 GitHub 远程版本 · 源码拉取后本地打包</p>
                     </div>
                   </header>
-                  <p class="aq-update-status" data-update-status>当前版本加载中…</p>
-                  <div class="aq-inline-btns aq-update-actions">
-                    <button type="button" class="aq-update-btn aq-update-btn--primary" data-check-update>检查更新</button>
-                    <button type="button" class="aq-update-btn" data-open-repo>打开 GitHub</button>
-                    <button type="button" class="aq-update-btn" data-open-releases>发布页</button>
+                  <div class="aq-update-board">
+                    <div class="aq-update-meta">
+                      <div class="aq-update-ver">
+                        <span class="aq-update-ver-label">当前</span>
+                        <strong class="aq-update-ver-val" data-update-current-ver>—</strong>
+                      </div>
+                      <div class="aq-update-arrow" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h10M9 5l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </div>
+                      <div class="aq-update-ver aq-update-ver--remote">
+                        <span class="aq-update-ver-label">远程</span>
+                        <strong class="aq-update-ver-val" data-update-remote-ver>—</strong>
+                      </div>
+                    </div>
+                    <div class="aq-update-status" data-update-status data-tone="normal">
+                      <span class="aq-update-status-icon" data-update-status-icon aria-hidden="true">ℹ</span>
+                      <span class="aq-update-status-text" data-update-status-text>当前版本加载中…</span>
+                    </div>
+                    <div class="aq-update-actions">
+                      <button type="button" class="aq-update-btn aq-update-btn--primary" data-check-update>
+                        <span class="aq-update-btn-icon" aria-hidden="true">↻</span>
+                        <span>检查更新</span>
+                      </button>
+                      <button type="button" class="aq-update-btn" data-open-repo>
+                        <span class="aq-update-btn-icon" aria-hidden="true">⌁</span>
+                        <span>打开 GitHub</span>
+                      </button>
+                      <button type="button" class="aq-update-btn" data-open-releases>
+                        <span class="aq-update-btn-icon" aria-hidden="true">⬇</span>
+                        <span>发布页</span>
+                      </button>
+                    </div>
                   </div>
-                  <details class="aq-mesh-details aq-update-guide">
-                    <summary>开发者：拉取并打包</summary>
-                    <pre class="aq-update-cmd">git pull origin main
+                  <details class="aq-update-guide">
+                    <summary class="aq-update-guide-head">
+                      <span class="aq-update-guide-icon" aria-hidden="true">⌘</span>
+                      <div class="aq-update-guide-meta">
+                        <span class="aq-update-guide-title">开发者：拉取并打包</span>
+                        <span class="aq-update-guide-brief">git pull · npm run build:win</span>
+                      </div>
+                      <span class="aq-update-guide-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="aq-update-guide-body">
+                      <div class="aq-update-guide-inner">
+                        <p class="aq-update-guide-desc">在源码目录拉取 GitHub 最新提交后，本地构建便携版到「启动/」目录。</p>
+                        <pre class="aq-update-cmd">git pull origin main
 npm install
 npm run build:win
 
 # 或一键：
 npm run update:build</pre>
+                      </div>
+                    </div>
                   </details>
                 </div>
                 <div class="aq-settings-hub">
