@@ -84,6 +84,25 @@ npm run update:build
 
 ---
 
+## 首次发布到 GitHub（维护者）
+
+本地已 `git init` 并完成首次提交时，只需登录 GitHub 并执行：
+
+```powershell
+gh auth login
+.\scripts\publish-to-github.ps1
+```
+
+脚本会创建公开仓库 `rainbowyuyu/aqun-desktop-pet` 并 push `main` 分支。
+
+也可手动：
+
+```powershell
+gh repo create rainbowyuyu/aqun-desktop-pet --public --source=. --remote=origin --push
+```
+
+---
+
 ## 发布新版本（维护者）
 
 1. 更新 `package.json` 的 `version` 与 `src/pet/releaseNotes.js`

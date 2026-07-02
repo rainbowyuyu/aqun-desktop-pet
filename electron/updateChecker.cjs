@@ -85,12 +85,29 @@ async function checkForUpdate({ owner, repo, branch, currentVersion }) {
   }
 
   if (!latest) {
-    const pkg = await getJson(
-      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/package.json`,
-    );
-    latest = normalizeVersion(pkg.version);
-    releaseUrl = `https://github.com/${owner}/${repo}/tree/${branch}`;
-    source = 'branch';
+    try {
+      const pkg = await getJson(
+        `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/package.json`,
+      );
+      latest = normalizeVersion(pkg.version);
+      releaseUrl = `https://github.com/${owner}/${repo}/tree/${branch}`;
+      source = 'branch';
+    } catch (err) {
+      return {
+        ok: false,
+        error: err.message || '无法读取远程版本',
+        currentVersion: cur,
+        latestVersion: null,
+        hasUpdate: false,
+        upToDate: false,
+        releaseUrl: urls.releasesUrl,
+        repoUrl: urls.repoUrl,
+        cloneUrl: `${urls.repoUrl}.git`,
+        releaseNotes: '',
+        publishedAt: null,
+        source: 'none',
+      };
+    }
   }
 
   const cmp = compareVersions(latest, cur);

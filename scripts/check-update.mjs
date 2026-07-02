@@ -24,7 +24,8 @@ const result = await checkForUpdate({
 });
 
 if (!result.ok) {
-  console.error('检查失败');
+  console.error(`检查失败: ${result.error || '未知错误'}`);
+  console.error(`仓库可能尚未创建或网络不可达: ${result.repoUrl}`);
   process.exit(1);
 }
 
