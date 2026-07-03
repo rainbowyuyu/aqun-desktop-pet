@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { yieldFrames } from '../utils/scheduler.js';
+import { getModelProfile } from './modelProfiles.js';
+import { verifyModelBuffer } from './modelIntegrity.js';
 
 /** 模型自身 Y 旋转 — 非绑骨 -90° 朝相机；绑骨在 Blender 朝前，再右旋 90° 面向观众 */
 export const MODEL_FACE_Y = -Math.PI / 2;
@@ -21,6 +23,34 @@ export class ModelLoader {
     this.bounds = new THREE.Box3();
     this.actions = new Map();
     this._idleAction = null;
+    this._pendingGesture = null;
+    this._profile = getModelProfile('aqun_rig');
+  }
+
+  setProfile(profile) {
+    this._profile = profile ?? getModelProfile('aqun_rig');
+  }
+
+  _isGestureClipName(name) {
+    return /^(wave|poke|nod|spin|sway)$/i.test(name);
+  }
+
+  _isActionPlaying(action, minRemain = 0.05) {
+    if (!action?.isRunning() || action.getEffectiveWeight() <= 0.2) return false;
+    const clip = action.getClip();
+    if (!clip) return false;
+    return clip.duration - action.time > minRemain;
+  }
+
+  /** 一次性手势（nod/poke/wave 等）是否仍在播放 */
+  isGestureBlocking() {
+    if (!this.mixer) return false;
+    for (const [name, action] of this.actions) {
+      if (action === this._idleAction) continue;
+      if (!this._isGestureClipName(name)) continue;
+      if (this._isActionPlaying(action)) return true;
+    }
+    return false;
   }
 
   load(url) {
@@ -72,6 +102,8 @@ export class ModelLoader {
       this._emitProgress(buffer.byteLength, total || buffer.byteLength);
     }
 
+    await verifyModelBuffer(url, buffer);
+
     await yieldFrames(1);
     const gltf = await this.loader.parseAsync(buffer, url);
     return this._finalize(gltf);
@@ -108,7 +140,7 @@ export class ModelLoader {
     await yieldFrames(1);
     this._collectMeshes();
 
-    if (this.animations.length > 0) {
+    if (this.animations.length > 0 && this._profile.hasGltfAnimations !== false) {
       this.mixer = new THREE.AnimationMixer(this.model);
       this.animations.forEach((clip) => {
         this.actions.set(clip.name, this.mixer.clipAction(clip));
@@ -148,22 +180,31 @@ export class ModelLoader {
 
   _normalizeModel() {
     const isRig = this._isRigModel;
+    const profile = this._profile ?? getModelProfile('aqun_rig');
     const box = new THREE.Box3().setFromObject(this.model);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    const targetH = isRig ? RIG_TARGET_HEIGHT : TARGET_HEIGHT;
+    const targetH = isRig
+      ? profile.rigTargetHeight
+      : (profile.targetHeight ?? TARGET_HEIGHT);
     const scale = targetH / size.y;
     this.model.scale.setScalar(scale);
-    this.model.rotation.y = isRig ? RIG_FACE_Y : MODEL_FACE_Y;
+    this.model.rotation.y = isRig ? (profile.rigFaceY ?? RIG_FACE_Y) : MODEL_FACE_Y;
     this.model.updateMatrixWorld(true);
     box.setFromObject(this.model);
     box.getCenter(center);
     this.model.position.sub(center);
     this.model.position.y += (box.max.y - box.min.y) / 2;
     if (isRig) {
-      // 绑骨模型以躯干为中心，略向前抬升使头部居中
-      this.model.position.y += 0.04;
-      this.model.position.z -= 0.06;
+      const off = profile.rigPositionOffset ?? { x: 0, y: 0.04, z: -0.06 };
+      this.model.position.x += off.x ?? 0;
+      this.model.position.y += off.y ?? 0;
+      this.model.position.z += off.z ?? 0;
+    } else if (profile.positionOffset) {
+      const off = profile.positionOffset;
+      this.model.position.x += off.x ?? 0;
+      this.model.position.y += off.y ?? 0;
+      this.model.position.z += off.z ?? 0;
     }
     this.bounds.setFromObject(this.model);
   }
@@ -174,7 +215,7 @@ export class ModelLoader {
     idle.setLoop(THREE.LoopRepeat, Infinity);
     idle.clampWhenFinished = false;
     idle.reset().fadeIn(0.2).play();
-    idle.setEffectiveTimeScale(this._isRigModel ? 1 : 0.9);
+    idle.setEffectiveTimeScale(this._isRigModel ? (this._profile.idleClipTimeScale ?? 1) : 0.9);
     this._idleAction = idle;
   }
 
@@ -188,8 +229,11 @@ export class ModelLoader {
     return null;
   }
 
-  playClip(nameOrPattern, { fade = 0.25, loop = false, timeScale = 1 } = {}) {
+  playClip(nameOrPattern, { fade = 0.25, loop = false, timeScale = 1, allowInterrupt = true } = {}) {
     if (!this.mixer) return null;
+    if (!allowInterrupt && !loop && this.isGestureBlocking()) {
+      return null;
+    }
     let next = typeof nameOrPattern === 'string'
       ? this.actions.get(nameOrPattern)
       : null;
@@ -228,7 +272,33 @@ export class ModelLoader {
   }
 
   playClipOnce(nameOrPattern, fade = 0.2) {
-    return this.playClip(nameOrPattern, { fade, loop: false });
+    if (this.isGestureBlocking()) {
+      this._pendingGesture = { nameOrPattern, fade };
+      return { queued: true };
+    }
+    return this._playOneShotClip(nameOrPattern, fade);
+  }
+
+  _playOneShotClip(nameOrPattern, fade) {
+    const action = this.playClip(nameOrPattern, { fade, loop: false, allowInterrupt: true });
+    if (action && this.mixer) {
+      const onFinished = (e) => {
+        if (e.action !== action) return;
+        this.mixer.removeEventListener('finished', onFinished);
+        this._flushPendingGesture();
+      };
+      this.mixer.addEventListener('finished', onFinished);
+    }
+    return action;
+  }
+
+  _flushPendingGesture() {
+    if (!this._pendingGesture) return;
+    const pending = this._pendingGesture;
+    this._pendingGesture = null;
+    if (!this.isGestureBlocking()) {
+      this._playOneShotClip(pending.nameOrPattern, pending.fade);
+    }
   }
 
   hasClips() {
@@ -253,34 +323,32 @@ export class ModelLoader {
   /** 点头/戳等片段是否在驱动头颈（眼神应叠在动画之上而非跳过） */
   isHeadGestureActive() {
     if (!this.mixer) return false;
-    const headGestures = /^(nod|poke)/i;
     for (const [name, action] of this.actions) {
       if (action === this._idleAction) continue;
-      if (!headGestures.test(name)) continue;
-      if (action.isRunning() && action.getEffectiveWeight() > 0.35) return true;
+      if (!/^(nod|poke)$/i.test(name)) continue;
+      if (this._isActionPlaying(action, 0.08)) return true;
     }
     return false;
   }
 
   isGestureActive() {
-    if (!this.mixer) return false;
-    const gesturePattern = /^(wave|poke|nod|spin|sway)/i;
-    for (const [name, action] of this.actions) {
+    return this.isGestureBlocking();
+  }
+
+  /** 绑骨 GLB 中非 idle 的动画是否正在驱动骨骼 */
+  isSkinnedClipDriving() {
+    if (!this.mixer || !this._isRigModel) return false;
+    for (const action of this.actions.values()) {
       if (action === this._idleAction) continue;
-      if (!action.isRunning() || action.getEffectiveWeight() <= 0.35) continue;
-      if (this._isRigModel && !gesturePattern.test(name)) continue;
-      return true;
+      if (action.isRunning() && action.getEffectiveWeight() > 0.15) return true;
     }
     return false;
   }
 
-  /** 绑骨 GLB 动画是否正在驱动骨骼（含 idle 循环） */
-  isSkinnedClipDriving() {
-    if (!this.mixer || !this._isRigModel) return false;
-    for (const action of this.actions.values()) {
-      if (action.isRunning() && action.getEffectiveWeight() > 0.15) return true;
-    }
-    return false;
+  /** 姿势库接管后关闭 GLB idle 循环，避免与程序化姿势冲突 */
+  setIdleClipWeight(weight) {
+    if (!this._idleAction) return;
+    this._idleAction.setEffectiveWeight(Math.max(0, Math.min(1, weight)));
   }
 
   update(delta) {

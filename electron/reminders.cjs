@@ -142,6 +142,10 @@ function shouldFire(r, now) {
   const [hh, mm] = r.time.split(':').map(Number);
   if (now.getHours() !== hh || now.getMinutes() !== mm) return false;
 
+  const targetMins = hh * 60 + (mm || 0);
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  if (nowMins > targetMins) return false;
+
   const lastKey = r.lastFired ? r.lastFired.slice(0, 10) : null;
   if (lastKey === key) return false;
   return true;
@@ -157,7 +161,7 @@ function fireReminder(r, now) {
   if (Notification.isSupported()) {
     const icon = getIconPath?.();
     const n = new Notification({
-      title: '提醒 · 阿群',
+      title: '提醒 · 桌面模型',
       body,
       icon: icon || undefined,
     });

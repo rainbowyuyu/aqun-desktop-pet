@@ -96,3 +96,37 @@ export function remindersForDate(reminders, key, { includeDisabled = false } = {
     })
     .sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')));
 }
+
+/** 解析 HH:MM 为当日分钟数 */
+export function reminderMinutesOnDate(r) {
+  const [hh, mm] = String(r.time || '00:00').split(':').map(Number);
+  if (!Number.isFinite(hh)) return 0;
+  return hh * 60 + (mm || 0);
+}
+
+/** 距提醒时刻还有多少分钟（负值表示已过期） */
+export function minutesUntilReminder(r, key, now = new Date()) {
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  return reminderMinutesOnDate(r) - nowMins;
+}
+
+/**
+ * 是否仍应展示/预告（未过期；可选提前 leadMinutes 内才展示）
+ * @param {{ gracePastMinutes?: number, leadMinutes?: number|null }} opts
+ */
+export function isReminderStillRelevant(r, key, now = new Date(), {
+  gracePastMinutes = 0,
+  leadMinutes = null,
+} = {}) {
+  const diff = minutesUntilReminder(r, key, now);
+  if (diff < -gracePastMinutes) return false;
+  if (leadMinutes != null && diff > leadMinutes) return false;
+  return true;
+}
+
+/** 今日尚未过期、且在预告窗口内的提醒（用于模型前 HUD） */
+export function upcomingRemindersForDate(reminders, key, now = new Date(), opts = {}) {
+  return remindersForDate(reminders, key, opts).filter((r) =>
+    isReminderStillRelevant(r, key, now, opts),
+  );
+}

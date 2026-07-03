@@ -4,15 +4,126 @@ import { BIRTHDAY } from './birthdayConfig.js';
 /**
  * 生日当天首次启动 · 信封祝福 + 礼盒开箱 + 模型登场
  */
+const MODEL_REVEAL_DURATION = 4.2;
+/** 登场旋转：正面 → 后背 → 正面（绕 Y 轴一整圈） */
+const MODEL_SPIN_Y = Math.PI * 2;
+
 export class BirthdayIntro {
-  constructor({ root, canvas, fx }) {
+  constructor({ root, canvas, fx, modelGroup = null }) {
     this.root = root;
     this.canvas = canvas;
     this.fx = fx;
+    this.modelGroup = modelGroup;
     this.el = null;
     this._tl = null;
     this._resolve = null;
     this._done = false;
+    this._modelRevealStarted = false;
+    this._revealTl = null;
+  }
+
+  _prepareModelRevealStart() {
+    if (!this.modelGroup) return;
+    gsap.killTweensOf(this.modelGroup);
+    gsap.killTweensOf(this.modelGroup.rotation);
+    gsap.killTweensOf(this.modelGroup.scale);
+    gsap.killTweensOf(this.modelGroup.position);
+    this.modelGroup.rotation.set(0, 0, 0);
+    this.modelGroup.scale.set(0.04, 0.04, 0.04);
+    this.modelGroup.position.y = -0.35;
+  }
+
+  _hideBirthdayOverlay() {
+    if (!this.el) return;
+    const hide = (sel) => {
+      const node = this.el.querySelector(sel);
+      if (!node) return;
+      gsap.killTweensOf(node);
+      gsap.set(node, { opacity: 0, pointerEvents: 'none', display: 'none' });
+    };
+    hide('.bi-copy');
+    hide('.bi-stage');
+    hide('.bi-aurora');
+    hide('.bi-bokeh');
+    hide('.bi-petals');
+    hide('.bi-hearts');
+    hide('.bi-sparkles');
+    hide('.bi-light-beam');
+    hide('[data-bi-skip]');
+    if (this._openBtn) {
+      this._openBtn.hidden = true;
+    }
+    this._giftWrap?.classList.remove('is-waiting');
+    gsap.killTweensOf(this.el);
+    this.el.classList.add('is-dismissed');
+    gsap.set(this.el, {
+      opacity: 0,
+      pointerEvents: 'none',
+      visibility: 'hidden',
+    });
+  }
+
+  _playModelReveal() {
+    if (this._modelRevealStarted || this._done) return;
+    this._modelRevealStarted = true;
+    this._prepareModelRevealStart();
+
+    const duration = MODEL_REVEAL_DURATION;
+    this._revealTl?.kill();
+    this._revealTl = gsap.timeline({
+      onComplete: () => this._finish(false),
+    });
+
+    if (this.modelGroup) {
+      this._revealTl
+        .to(
+          this.canvas,
+          {
+            opacity: 1,
+            filter: 'brightness(1) saturate(1)',
+            duration: duration * 0.35,
+            ease: 'power2.out',
+          },
+          0,
+        )
+        .to(
+          this.modelGroup.scale,
+          { x: 1, y: 1, z: 1, duration, ease: 'power3.out' },
+          0,
+        )
+        .to(
+          this.modelGroup.position,
+          { y: 0, duration, ease: 'power3.out' },
+          0,
+        )
+        .to(
+          this.modelGroup.rotation,
+          { y: MODEL_SPIN_Y, duration, ease: 'power2.inOut' },
+          0,
+        );
+    } else {
+      this._revealTl.to(
+        this.canvas,
+        { opacity: 1, scale: 1, y: 0, duration, ease: 'power3.out' },
+        0,
+      );
+    }
+  }
+
+  /** @deprecated 保留旧名，供 skip 等路径复用 */
+  _prepareModelHidden() {
+    this._prepareModelRevealStart();
+  }
+
+  _resetModelTransform() {
+    if (!this.modelGroup) return;
+    gsap.killTweensOf(this.modelGroup);
+    gsap.killTweensOf(this.modelGroup.rotation);
+    gsap.killTweensOf(this.modelGroup.scale);
+    gsap.killTweensOf(this.modelGroup.position);
+    this.modelGroup.rotation.set(0, 0, 0);
+    this.modelGroup.scale.set(1, 1, 1);
+    this.modelGroup.position.y = 0;
   }
 
   mount() {
@@ -227,23 +338,16 @@ export class BirthdayIntro {
   _resumeGiftOpen() {
     if (this._giftGateDone || this._done) return;
     this._giftGateDone = true;
+    this._tl?.pause();
     gsap.killTweensOf([
       this._giftWrap?.querySelector('.bi-gift-glow'),
       this._giftWrap?.querySelector('.bi-gift-shimmer'),
+      this._openBtn,
     ]);
-    if (this._openBtn) {
-      gsap.to(this._openBtn, {
-        opacity: 0,
-        scale: 0.92,
-        duration: 0.28,
-        onComplete: () => {
-          this._openBtn.hidden = true;
-        },
-      });
-    }
-    this._giftWrap?.classList.remove('is-waiting');
-    this.fx?.burstConfetti?.({ count: 32, duration: 1.8 });
-    this._tl?.play();
+    this._hideBirthdayOverlay();
+    gsap.set(this.canvas, { opacity: 1, filter: 'brightness(1) saturate(1)' });
+    this.fx?.burstConfetti?.({ count: 48, duration: 2.4 });
+    this._playModelReveal();
   }
 
   play() {
@@ -251,6 +355,7 @@ export class BirthdayIntro {
       this._resolve = resolve;
       this._done = false;
       this._giftGateDone = false;
+      this._modelRevealStarted = false;
 
       const copy = this.el.querySelector('.bi-copy');
       const envelope = this.el.querySelector('[data-bi-envelope]');
@@ -260,10 +365,7 @@ export class BirthdayIntro {
       const postmark = this.el.querySelector('.bi-postmark');
       const stage = this.el.querySelector('.bi-stage');
       const gift = this.el.querySelector('.bi-gift');
-      const lid = this.el.querySelector('.bi-gift-lid');
       const glow = this.el.querySelector('.bi-gift-glow');
-      const burst = this.el.querySelector('.bi-gift-burst');
-      const giftSpark = this.el.querySelector('.bi-gift-spark');
       const lightBeam = this.el.querySelector('.bi-light-beam');
       const skip = this.el.querySelector('[data-bi-skip]');
       const wishLines = this.el.querySelectorAll('.bi-wish-line');
@@ -280,15 +382,14 @@ export class BirthdayIntro {
       gsap.set(lightBeam, { opacity: 0, scaleY: 0.3 });
       gsap.set(this.canvas, {
         opacity: 0,
-        scale: 0.06,
-        y: 52,
-        transformOrigin: '50% 88%',
-        filter: 'brightness(1.4) saturate(1.12)',
+        scale: 1,
+        y: 0,
+        rotation: 0,
+        filter: 'brightness(1.45) saturate(1.15)',
       });
+      this._prepareModelRevealStart();
 
-      this._tl = gsap.timeline({
-        onComplete: () => this._finish(false),
-      });
+      this._tl = gsap.timeline();
 
       this._tl
         .to(this.el, { opacity: 1, duration: 1, ease: 'power2.out' })
@@ -302,7 +403,7 @@ export class BirthdayIntro {
         .call(() => {
           letter.hidden = false;
         }, null, 2.55)
-        .to(letter, { opacity: 1, y: -72, scale: 1, rotateX: 0, duration: 1, ease: 'power3.out' }, 2.55)
+        .to(letter, { opacity: 1, y: -8, scale: 1, rotateX: 0, duration: 1, ease: 'power3.out' }, 2.55)
         .to(envelope, { opacity: 0, y: 36, scale: 0.92, duration: 0.55, ease: 'power2.in' }, 2.85)
         .call(() => {
           if (envelope) {
@@ -363,28 +464,7 @@ export class BirthdayIntro {
         .to(gift, { y: 0, scale: 1, duration: 1.2, ease: 'back.out(1.4)' }, 5.6)
         .to(glow, { opacity: 0.88, scale: 1.2, duration: 0.9, ease: 'sine.inOut' }, 5.85)
         .to(lightBeam, { opacity: 0.55, scaleY: 1, duration: 0.85, ease: 'power2.out' }, 5.9)
-        .call(() => this._enterGiftWaitGate(), null, 6.65)
-        .to(lid, { rotateX: -122, y: -8, duration: 0.95, ease: 'power3.inOut' }, 6.75)
-        .to(burst, { opacity: 1, scale: 1.75, duration: 0.42, ease: 'power2.out' }, 6.95)
-        .to(giftSpark, { opacity: 1, scale: 1.4, duration: 0.35, ease: 'power2.out' }, 6.98)
-        .to(burst, { opacity: 0, scale: 2.4, duration: 0.55, ease: 'power2.in' }, 7.35)
-        .to(giftSpark, { opacity: 0, scale: 2, duration: 0.5, ease: 'power2.in' }, 7.35)
-        .call(() => this.fx?.burstConfetti?.({ count: 88, duration: 4.2 }), null, 7)
-        .to(
-          this.canvas,
-          { opacity: 1, scale: 1, y: 0, duration: 1.5, ease: 'power3.out' },
-          7.05,
-        )
-        .to(
-          this.canvas,
-          { filter: 'brightness(1) saturate(1)', duration: 1.3, ease: 'power2.out' },
-          7.05,
-        )
-        .to(lightBeam, { opacity: 0, duration: 0.6, ease: 'power2.in' }, 7.4)
-        .to(copy, { opacity: 0, y: -24, duration: 0.75, ease: 'power2.in' }, 8.05)
-        .to(gift, { opacity: 0, y: 32, scale: 0.9, duration: 0.8, ease: 'power2.in' }, 8.1)
-        .to(glow, { opacity: 0, duration: 0.5 }, 8.1)
-        .to(this.el, { opacity: 0, duration: 0.85, ease: 'power2.inOut' }, 8.75);
+        .call(() => this._enterGiftWaitGate(), null, 6.65);
 
       window.setTimeout(() => {
         if (skip) skip.hidden = false;
@@ -397,16 +477,21 @@ export class BirthdayIntro {
     if (this._done) return;
     this._done = true;
     this._tl?.kill();
+    this._revealTl?.kill();
     gsap.killTweensOf([this.el, this.canvas]);
+    this._resetModelTransform();
     gsap.set(this.canvas, {
       opacity: 1,
       scale: 1,
       y: 0,
+      rotation: 0,
       filter: 'none',
       clearProps: 'transform,filter',
     });
     if (this.el) {
-      gsap.set(this.el, { opacity: 0, pointerEvents: 'none' });
+      gsap.killTweensOf(this.el.querySelectorAll('*'));
+      this.el.remove();
+      this.el = null;
     }
     if (skipped) this.fx?.burstConfetti?.({ count: 44, duration: 2.4 });
     this._resolve?.();
@@ -414,9 +499,12 @@ export class BirthdayIntro {
 
   dispose() {
     this._tl?.kill();
+    this._revealTl?.kill();
     this._openBtn?.removeEventListener('click', this._onOpenGift);
-    gsap.killTweensOf(this.el?.querySelectorAll('*') ?? []);
-    this.el?.remove();
+    if (this.el) {
+      gsap.killTweensOf(this.el.querySelectorAll('*') ?? []);
+      this.el.remove();
+    }
     this.el = null;
   }
 }

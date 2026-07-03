@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot -Parent
 Set-Location $Root
 
-Write-Host "==> 阿群模型 · 拉取并打包" -ForegroundColor Cyan
+Write-Host "==> 桌面模型 · 拉取并打包" -ForegroundColor Cyan
 Write-Host "    目录: $Root"
 Write-Host "    分支: $Branch"
 

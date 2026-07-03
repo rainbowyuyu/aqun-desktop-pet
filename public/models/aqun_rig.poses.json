@@ -754,11 +754,152 @@
         }
       },
       "id": "typing"
+    },
+    "look_turn_r": {
+      "name": "转向右 · Blender",
+      "bones": {
+        "c_root_bendx": {
+          "euler": [0, 0, -0.042426],
+          "locked": false
+        },
+        "c_spine_01_bendx": {
+          "euler": [0.000742, 0.095612, 0.015513],
+          "locked": false
+        },
+        "c_spine_02_bendx": {
+          "euler": [0, 0, 0.014849],
+          "locked": false
+        },
+        "neckx": {
+          "euler": [0.0003, 0.038245, 0.006205],
+          "locked": false
+        },
+        "handl": {
+          "euler": [-0.407533, -0.181047, -0.291544],
+          "locked": false
+        },
+        "handr": {
+          "euler": [-0.30551, -0.073745, 0.121264],
+          "locked": false
+        },
+        "footl": {
+          "euler": [-0.006749, 0.004804, -0.010362],
+          "locked": false
+        },
+        "footr": {
+          "euler": [-0.006749, -0.004804, 0.010362],
+          "locked": false
+        },
+        "toes_01l": {
+          "euler": [0.113142, 0.000521, 0.001076],
+          "locked": false
+        },
+        "toes_01r": {
+          "euler": [0.113142, -0.000521, -0.001076],
+          "locked": false
+        }
+      },
+      "id": "look_turn_r"
+    },
+    "look_turn_l": {
+      "name": "转向左 · Blender 对称",
+      "bones": {
+        "c_root_bendx": {
+          "euler": [0, 0, 0.042426],
+          "locked": false
+        },
+        "c_spine_01_bendx": {
+          "euler": [0.000742, -0.095612, -0.015513],
+          "locked": false
+        },
+        "c_spine_02_bendx": {
+          "euler": [0, 0, -0.014849],
+          "locked": false
+        },
+        "neckx": {
+          "euler": [0.0003, -0.038245, -0.006205],
+          "locked": false
+        },
+        "handl": {
+          "euler": [-0.407533, 0.181047, 0.291544],
+          "locked": false
+        },
+        "handr": {
+          "euler": [-0.30551, 0.073745, -0.121264],
+          "locked": false
+        },
+        "footl": {
+          "euler": [-0.006749, -0.004804, 0.010362],
+          "locked": false
+        },
+        "footr": {
+          "euler": [-0.006749, 0.004804, -0.010362],
+          "locked": false
+        },
+        "toes_01l": {
+          "euler": [0.113142, -0.000521, -0.001076],
+          "locked": false
+        },
+        "toes_01r": {
+          "euler": [0.113142, 0.000521, 0.001076],
+          "locked": false
+        }
+      },
+      "id": "look_turn_l"
+    },
+    "look_up": {
+      "name": "仰头 · Blender",
+      "bones": {
+        "c_spine_01_bendx": {
+          "euler": [-0.08, 0, 0],
+          "locked": false
+        },
+        "c_spine_02_bendx": {
+          "euler": [-0.06, 0, 0],
+          "locked": false
+        },
+        "c_spine_03x": {
+          "euler": [-0.04, 0, 0],
+          "locked": false
+        },
+        "neckx": {
+          "euler": [-0.05, 0, 0],
+          "locked": false
+        }
+      },
+      "id": "look_up"
+    },
+    "look_down": {
+      "name": "低头 · Blender",
+      "bones": {
+        "c_spine_01_bendx": {
+          "euler": [0.08, 0, 0],
+          "locked": false
+        },
+        "c_spine_02_bendx": {
+          "euler": [0.06, 0, 0],
+          "locked": false
+        },
+        "c_spine_03x": {
+          "euler": [0.04, 0, 0],
+          "locked": false
+        },
+        "neckx": {
+          "euler": [0.05, 0, 0],
+          "locked": false
+        }
+      },
+      "id": "look_down"
     }
   },
   "assignments": {
     "rest": "idle",
-    "typing": "typing"
+    "typing": "typing",
+    "lookBody": "look_turn_r",
+    "lookBodyRight": "look_turn_r",
+    "lookBodyLeft": "look_turn_l",
+    "lookBodyUp": "look_up",
+    "lookBodyDown": "look_down"
   },
   "transitions": [
     {

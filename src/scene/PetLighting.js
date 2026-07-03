@@ -14,13 +14,13 @@ export class PetLighting {
     this._envReady = false;
 
     this._targets = {
-      key: 1.85,
-      fill: 0.48,
-      rim: 0.42,
-      front: 0.28,
-      ambient: 0.32,
-      hemi: 0.4,
-      env: 0.45,
+      key: 2.05,
+      fill: 0.62,
+      rim: 0.52,
+      front: 0.34,
+      ambient: 0.26,
+      hemi: 0.46,
+      env: 0.58,
     };
 
     this._setupLights();
@@ -29,38 +29,38 @@ export class PetLighting {
   }
 
   _setupLights() {
-    const ambient = new THREE.AmbientLight(0xfff8f0, 0.06);
+    const ambient = new THREE.AmbientLight(0xfff6ee, 0.06);
     this.scene.add(ambient);
     this.lights.ambient = ambient;
 
-    const hemi = new THREE.HemisphereLight(0xd8ecff, 0xa8c898, 0.08);
+    const hemi = new THREE.HemisphereLight(0xe4f0ff, 0xc8dcc0, 0.08);
     this.scene.add(hemi);
     this.lights.hemi = hemi;
 
     const sp = sunPosition(1);
-    const key = new THREE.DirectionalLight(0xfffff2, 0);
-    key.position.set(sp.x * 22, sp.y * 22, sp.z * 22);
+    const key = new THREE.DirectionalLight(0xfff4e6, 0);
+    key.position.set(sp.x * 20, sp.y * 24, sp.z * 18);
     key.target.position.copy(LOOK_TARGET);
     this.scene.add(key);
     this.scene.add(key.target);
     this.lights.key = key;
 
-    const fill = new THREE.DirectionalLight(0xe8f0ff, 0);
-    fill.position.set(-4.5, 2.2, 5);
+    const fill = new THREE.DirectionalLight(0xd8eaff, 0);
+    fill.position.set(-5.5, 2.8, 4.5);
     fill.target.position.copy(LOOK_TARGET);
     this.scene.add(fill);
     this.scene.add(fill.target);
     this.lights.fill = fill;
 
-    const rim = new THREE.DirectionalLight(0xfff0e8, 0);
-    rim.position.set(3.5, 4.5, -2.5);
+    const rim = new THREE.DirectionalLight(0xffe8d4, 0);
+    rim.position.set(2.8, 5.2, -3.2);
     rim.target.position.copy(LOOK_TARGET);
     this.scene.add(rim);
     this.scene.add(rim.target);
     this.lights.rim = rim;
 
-    const front = new THREE.PointLight(0xfff8f0, 0, 6);
-    front.position.set(0, 1.05, 1.8);
+    const front = new THREE.PointLight(0xfff8f2, 0, 8);
+    front.position.set(0, 1.15, 2.1);
     this.scene.add(front);
     this.lights.front = front;
   }
@@ -102,8 +102,9 @@ export class PetLighting {
           vec3 col = h > 0.5
             ? mix(midColor, topColor, (h - 0.5) * 2.0)
             : mix(botColor, midColor, h * 2.0);
-          float sun = pow(max(dot(normalize(vWorldPosition), sunDir), 0.0), 10.0);
-          col += vec3(1.0, 0.97, 0.9) * sun * 0.05;
+          float sun = pow(max(dot(normalize(vWorldPosition), sunDir), 0.0), 8.0);
+          col += vec3(1.0, 0.96, 0.88) * sun * 0.08;
+          col = mix(col, col * 1.04, 0.35);
           gl_FragColor = vec4(col, 1.0);
         }
       `,
@@ -125,9 +126,19 @@ export class PetLighting {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       mats.forEach((mat) => {
         if (!mat?.isMeshStandardMaterial && !mat?.isMeshPhysicalMaterial) return;
-        mat.envMapIntensity = 0.55;
-        if (mat.roughness != null) mat.roughness = Math.min(mat.roughness, 0.72);
-        if (mat.metalness != null) mat.metalness = Math.max(0, mat.metalness * 0.85);
+        const hasMap = !!mat.map;
+        mat.envMapIntensity = hasMap ? 0.78 : 0.65;
+        if (mat.roughness != null) {
+          mat.roughness = Math.min(mat.roughness, hasMap ? 0.58 : 0.52);
+        }
+        if (mat.metalness != null) {
+          mat.metalness = Math.min(mat.metalness * 0.7, 0.12);
+        }
+        if (mat.color && !hasMap) {
+          const hsl = { h: 0, s: 0, l: 0 };
+          mat.color.getHSL(hsl);
+          mat.color.setHSL(hsl.h, hsl.s * 0.92, Math.min(1, hsl.l * 1.04 + 0.02));
+        }
         mat.needsUpdate = true;
       });
     });
@@ -199,9 +210,9 @@ export class PetLighting {
 
   setMood(mode) {
     const presets = {
-      idle: { key: 1, fill: 1, rim: 1, front: 1, env: 1 },
-      typing: { key: 1.06, fill: 1.04, rim: 0.95, front: 1.08, env: 1.02 },
-      hologram: { key: 0.72, fill: 0.68, rim: 1.1, front: 0.6, env: 0.65 },
+      idle: { key: 1, fill: 1, rim: 1, front: 1, env: 1, ambient: 1, hemi: 1 },
+      typing: { key: 1.04, fill: 1.02, rim: 0.98, front: 1.05, env: 1.04, ambient: 1, hemi: 1 },
+      hologram: { key: 0.72, fill: 0.68, rim: 1.12, front: 0.58, env: 0.62, ambient: 0.9, hemi: 0.85 },
     };
     const p = presets[mode] || presets.idle;
     this._fadeTween?.kill();
@@ -211,6 +222,8 @@ export class PetLighting {
       fill: this.lights.fill.intensity,
       rim: this.lights.rim.intensity,
       front: this.lights.front.intensity,
+      ambient: this.lights.ambient.intensity,
+      hemi: this.lights.hemi.intensity,
       env: this.scene.environmentIntensity || this._targets.env,
     };
 
@@ -219,6 +232,8 @@ export class PetLighting {
       fill: this._targets.fill * p.fill,
       rim: this._targets.rim * p.rim,
       front: this._targets.front * p.front,
+      ambient: this._targets.ambient * (p.ambient ?? 1),
+      hemi: this._targets.hemi * (p.hemi ?? 1),
       env: this._targets.env * p.env,
       duration: 0.6,
       ease: 'sine.inOut',
@@ -227,6 +242,8 @@ export class PetLighting {
         this.lights.fill.intensity = proxy.fill;
         this.lights.rim.intensity = proxy.rim;
         this.lights.front.intensity = proxy.front;
+        this.lights.ambient.intensity = proxy.ambient;
+        this.lights.hemi.intensity = proxy.hemi;
         if (this.scene.environment) this.scene.environmentIntensity = proxy.env;
       },
     });

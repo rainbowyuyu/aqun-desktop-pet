@@ -40,7 +40,7 @@ export const FEATURE_CATALOG = [
     icon: '🦴',
     tone: 'violet',
     items: [
-      '独立窗口 · Rainbow 鱼工作室绑骨姿势工具',
+      '独立窗口 · rainbow鱼绑骨姿势工具',
       'Blender 风格视口：移动 / 旋转 Gizmo、骨骼框选、骨架线',
       '右侧分类面板：骨骼 / 部件 / 姿势库 / 过渡',
       '独立设置面板：显示选项与快捷键自定义',
@@ -616,7 +616,7 @@ export const RELEASE_NOTES = [
   {
     version: 'v1.0.0',
     date: '2026-06-26',
-    title: '首发 · 阿群桌面模型',
+    title: '首发 · 桌面模型',
     sections: [{
       title: '首发',
       items: [

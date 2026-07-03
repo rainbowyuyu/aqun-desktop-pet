@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>阿群 · 控制中心</title>
+    <title>桌面模型 · 控制中心</title>
     <link rel="icon" type="image/png" href="./logo.png" />
     <link rel="stylesheet" href="/src/styles/panel.css" />
     <link rel="stylesheet" href="/src/styles/tools.css" />
@@ -15,7 +15,7 @@
           <aside class="aq-nav" aria-label="设置导航">
             <div class="aq-nav-brand">
               <img src="./logo.png" alt="" class="aq-nav-logo" />
-              <span class="aq-nav-title">阿群</span>
+              <span class="aq-nav-title">桌面模型</span>
             </div>
             <nav class="aq-nav-list">
               <p class="aq-nav-group-label">功能</p>
@@ -83,12 +83,12 @@
                   </div>
                   <div class="aq-about-meta">
                     <h2 class="aq-about-name">阿群</h2>
-                    <p class="aq-about-tag">7 月 4 日 · 桌面模型</p>
+                    <p class="aq-about-tag">7 月 4 日 · 阿群</p>
                     <div class="aq-rainbow-bar" aria-hidden="true"></div>
                   </div>
                 </div>
                 <p class="aq-about-bio">
-                  阿群是一枚住在桌面上的 3D 小伙伴：眼神会跟着鼠标转，键盘敲下去她也会有所回应。日历、课表、天气、常用站点、小工具……都藏在这个控制中心里。
+                  一枚住在桌面上的 3D 小伙伴：眼神会跟着鼠标转，键盘敲下去也会有所回应。日历、课表、天气、常用站点、小工具……都藏在这个控制中心里。
                 </p>
                 <div class="aq-quick-grid">
                   <button type="button" class="aq-quick-card" data-goto-tab="appearance">
@@ -135,7 +135,7 @@
                   <ul class="aq-hint-list">
                     <li><strong>模型窗口</strong> — 左键拖走她 · 右键左右滑可缩放</li>
                     <li><strong>控制中心</strong> — 独立窗口，想多大就多大</li>
-                    <li><strong>和她玩</strong> — 单击互动 · 双击挥手 · 三击转圈</li>
+                    <li><strong>互动</strong> — 单击互动 · 双击转圈 · 三击挥手 · Ctrl+1～5 快捷动作</li>
                     <li><strong>日历</strong> — 课表导入 · 提醒 · 天气 · 右键日期快速添加</li>
                     <li><strong>常用站点</strong> — 学习、生活、工具类链接，少切一次浏览器</li>
                     <li><strong>小工具</strong> — 番茄钟、天气、待办、换算……日常随手用</li>
@@ -181,6 +181,15 @@
                       </label>
                     </div>
                     <input data-setting="petScale" class="aq-range" type="range" min="0.6" max="1.8" step="0.05" value="1" />
+                    <div class="aq-scale-presets" data-scale-presets>
+                      <button type="button" class="aq-scale-preset" data-scale-preset="0.6">60%</button>
+                      <button type="button" class="aq-scale-preset" data-scale-preset="0.75">75%</button>
+                      <button type="button" class="aq-scale-preset is-active" data-scale-preset="1">100%</button>
+                      <button type="button" class="aq-scale-preset" data-scale-preset="1.25">125%</button>
+                      <button type="button" class="aq-scale-preset" data-scale-preset="1.5">150%</button>
+                      <button type="button" class="aq-scale-preset" data-scale-preset="1.8">180%</button>
+                    </div>
+                    <p class="aq-scale-hint" data-scale-size-hint>窗口约 320 × 480 px · 可在模型窗口右键左右拖动缩放</p>
                   </div>
                   <div class="aq-field aq-field--last">
                     <div class="aq-field-head">
@@ -257,6 +266,21 @@
                 <div class="aq-settings-card">
                   <header class="aq-settings-card-head">
                     <div>
+                      <h3 class="aq-settings-card-title">动作快捷键</h3>
+                      <p class="aq-settings-card-desc">全局快捷键 · 点击按键可自定义 · 未聚焦模型窗口时也可触发</p>
+                    </div>
+                  </header>
+                  <label class="aq-toggle aq-toggle--card aq-toggle--wide">
+                    <input data-setting="actionShortcutsEnabled" type="checkbox" checked />
+                    <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                    <span class="aq-toggle-text">启用动作快捷键</span>
+                  </label>
+                  <p class="aq-shortcut-hint">默认 Ctrl+1～5：旋转、摇晃、左转头、右转头、蹦跳</p>
+                  <ul class="aq-shortcut-list" data-action-shortcut-list aria-label="动作快捷键列表"></ul>
+                </div>
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
                       <h3 class="aq-settings-card-title">桌面反馈</h3>
                       <p class="aq-settings-card-desc">键盘标签、气泡与按键动效</p>
                     </div>
@@ -293,6 +317,21 @@
                       <span class="aq-field-label">按键按下颜色</span>
                     </div>
                     <input data-setting="keyPressColor" class="aq-color" type="color" value="#e07898" />
+                  </div>
+                </div>
+                <div class="aq-settings-card">
+                  <header class="aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">AI 智能建议</h3>
+                      <p class="aq-settings-card-desc">根据全局键盘输入猜测意图，由模型给出简短建议（英文/数字输入效果最佳）</p>
+                    </div>
+                  </header>
+                  <div class="aq-toggle-grid">
+                    <label class="aq-toggle aq-toggle--card">
+                      <input data-setting="aiEnabled" type="checkbox" checked />
+                      <span class="aq-toggle-track"><span class="aq-toggle-thumb"></span></span>
+                      <span class="aq-toggle-text">启用 AI 建议</span>
+                    </label>
                   </div>
                 </div>
                 <div class="aq-settings-card">
@@ -366,6 +405,89 @@
               </section>
 
               <section class="aq-page" data-page="advanced">
+                <div class="aq-settings-hub">
+                  <header class="aq-hub-head aq-settings-card-head">
+                    <div>
+                      <h3 class="aq-settings-card-title">设置中心</h3>
+                      <p class="aq-settings-card-desc">动画预览 · 分类重置 · 恢复默认</p>
+                    </div>
+                    <span class="aq-hub-badge" aria-hidden="true">↺</span>
+                  </header>
+
+                  <section class="aq-hub-section">
+                    <p class="aq-hub-label">动画预览</p>
+                    <div class="aq-preview-row">
+                      <button type="button" class="aq-preview-card" data-preview="tutorial">
+                        <span class="aq-preview-glow" aria-hidden="true"></span>
+                        <span class="aq-preview-icon" aria-hidden="true">◎</span>
+                        <span class="aq-preview-text">
+                          <strong>播放教程动画</strong>
+                          <small>新手引导完整流程</small>
+                        </span>
+                        <span class="aq-preview-arrow" aria-hidden="true">→</span>
+                      </button>
+                      <button type="button" class="aq-preview-card aq-preview-card--birthday" data-preview="birthday">
+                        <span class="aq-preview-glow" aria-hidden="true"></span>
+                        <span class="aq-preview-icon" aria-hidden="true">🎂</span>
+                        <span class="aq-preview-text">
+                          <strong>播放生日祝福</strong>
+                          <small>礼盒开箱 · 模型登场</small>
+                        </span>
+                        <span class="aq-preview-arrow" aria-hidden="true">→</span>
+                      </button>
+                    </div>
+                  </section>
+
+                  <section class="aq-hub-section">
+                    <p class="aq-hub-label">分类重置</p>
+                    <div class="aq-reset-chips">
+                      <button type="button" class="aq-reset-chip" data-reset-scope="appearance">
+                        <span class="aq-reset-chip-icon">◐</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">模型</span>
+                          <span class="aq-reset-chip-desc">模型 · 大小 · 透明度</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip" data-reset-scope="interaction">
+                        <span class="aq-reset-chip-icon">◎</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">互动</span>
+                          <span class="aq-reset-chip-desc">眼神 · 键盘 · 快捷键</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip" data-reset-scope="system">
+                        <span class="aq-reset-chip-icon">▢</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">窗口</span>
+                          <span class="aq-reset-chip-desc">置顶 · 穿透 · 锁定</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip" data-reset-scope="tutorial">
+                        <span class="aq-reset-chip-icon">✦</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">教程入口</span>
+                          <span class="aq-reset-chip-desc">重现右下角光点</span>
+                        </span>
+                      </button>
+                      <button type="button" class="aq-reset-chip aq-reset-chip--wide" data-reset-scope="reminders">
+                        <span class="aq-reset-chip-icon">📅</span>
+                        <span class="aq-reset-chip-body">
+                          <span class="aq-reset-chip-title">日历提醒</span>
+                          <span class="aq-reset-chip-desc">清空自定义 · 恢复默认条目</span>
+                        </span>
+                      </button>
+                    </div>
+                  </section>
+
+                  <button type="button" class="aq-reset-all" data-reset-scope="all">
+                    <span class="aq-reset-all-shine" aria-hidden="true"></span>
+                    <span class="aq-reset-all-label">恢复全部默认</span>
+                    <span class="aq-reset-all-hint">模型 · 互动 · 窗口 · 提醒</span>
+                  </button>
+
+                  <p class="aq-reset-status" data-reset-status aria-live="polite"></p>
+                </div>
+
                 <div class="aq-settings-card">
                   <header class="aq-settings-card-head">
                     <div>
@@ -428,94 +550,12 @@ npm run update:build</pre>
                     </div>
                   </details>
                 </div>
-                <div class="aq-settings-hub">
-                  <header class="aq-hub-head">
-                    <div>
-                      <p class="aq-section-label">设置中心</p>
-                      <p class="aq-section-hint">动画预览 · 分类重置 · 恢复默认</p>
-                    </div>
-                    <span class="aq-hub-badge" aria-hidden="true">↺</span>
-                  </header>
-
-                  <section class="aq-hub-section">
-                    <p class="aq-hub-label">动画预览</p>
-                    <div class="aq-preview-row">
-                      <button type="button" class="aq-preview-card" data-preview="tutorial">
-                        <span class="aq-preview-glow" aria-hidden="true"></span>
-                        <span class="aq-preview-icon" aria-hidden="true">◎</span>
-                        <span class="aq-preview-text">
-                          <strong>播放教程动画</strong>
-                          <small>新手引导完整流程</small>
-                        </span>
-                        <span class="aq-preview-arrow" aria-hidden="true">→</span>
-                      </button>
-                      <button type="button" class="aq-preview-card aq-preview-card--birthday" data-preview="birthday">
-                        <span class="aq-preview-glow" aria-hidden="true"></span>
-                        <span class="aq-preview-icon" aria-hidden="true">🎂</span>
-                        <span class="aq-preview-text">
-                          <strong>播放生日祝福</strong>
-                          <small>礼盒开箱 · 模型登场</small>
-                        </span>
-                        <span class="aq-preview-arrow" aria-hidden="true">→</span>
-                      </button>
-                    </div>
-                  </section>
-
-                  <section class="aq-hub-section">
-                    <p class="aq-hub-label">分类重置</p>
-                    <div class="aq-reset-chips">
-                      <button type="button" class="aq-reset-chip" data-reset-scope="appearance">
-                        <span class="aq-reset-chip-icon">◐</span>
-                        <span class="aq-reset-chip-body">
-                          <span class="aq-reset-chip-title">模型</span>
-                          <span class="aq-reset-chip-desc">模型 · 大小 · 透明度</span>
-                        </span>
-                      </button>
-                      <button type="button" class="aq-reset-chip" data-reset-scope="interaction">
-                        <span class="aq-reset-chip-icon">◎</span>
-                        <span class="aq-reset-chip-body">
-                          <span class="aq-reset-chip-title">互动</span>
-                          <span class="aq-reset-chip-desc">眼神 · 键盘 · 气泡</span>
-                        </span>
-                      </button>
-                      <button type="button" class="aq-reset-chip" data-reset-scope="system">
-                        <span class="aq-reset-chip-icon">▢</span>
-                        <span class="aq-reset-chip-body">
-                          <span class="aq-reset-chip-title">窗口</span>
-                          <span class="aq-reset-chip-desc">置顶 · 穿透 · 锁定</span>
-                        </span>
-                      </button>
-                      <button type="button" class="aq-reset-chip" data-reset-scope="tutorial">
-                        <span class="aq-reset-chip-icon">✦</span>
-                        <span class="aq-reset-chip-body">
-                          <span class="aq-reset-chip-title">教程入口</span>
-                          <span class="aq-reset-chip-desc">重现右下角光点</span>
-                        </span>
-                      </button>
-                      <button type="button" class="aq-reset-chip aq-reset-chip--wide" data-reset-scope="reminders">
-                        <span class="aq-reset-chip-icon">📅</span>
-                        <span class="aq-reset-chip-body">
-                          <span class="aq-reset-chip-title">日历提醒</span>
-                          <span class="aq-reset-chip-desc">清空自定义 · 恢复默认条目</span>
-                        </span>
-                      </button>
-                    </div>
-                  </section>
-
-                  <button type="button" class="aq-reset-all" data-reset-scope="all">
-                    <span class="aq-reset-all-shine" aria-hidden="true"></span>
-                    <span class="aq-reset-all-label">恢复全部默认</span>
-                    <span class="aq-reset-all-hint">模型 · 互动 · 窗口 · 提醒</span>
-                  </button>
-
-                  <p class="aq-reset-status" data-reset-status aria-live="polite"></p>
-                </div>
 
                 <div class="aq-settings-card aq-settings-card--flat">
                   <header class="aq-settings-card-head">
                     <div>
                       <h3 class="aq-settings-card-title">骨骼姿势编辑器</h3>
-                      <p class="aq-settings-card-desc">Rainbow 鱼工作室 · 绑骨姿势与过渡设计</p>
+                      <p class="aq-settings-card-desc">Rainbow鱼 · 绑骨姿势与过渡设计</p>
                     </div>
                   </header>
                   <button type="button" class="aq-preview-card aq-pose-editor-open" data-open-pose-editor>
@@ -534,7 +574,7 @@ npm run update:build</pre>
                     <span class="aq-dev-expand-avatar" aria-hidden="true">R</span>
                     <div class="aq-dev-expand-meta">
                       <span class="aq-dev-expand-name">开发者与作者</span>
-                      <span class="aq-dev-expand-brief">Rainbow 鱼工作室</span>
+                      <span class="aq-dev-expand-brief">Rainbow鱼</span>
                     </div>
                     <span class="aq-dev-expand-chevron" aria-hidden="true"></span>
                   </button>

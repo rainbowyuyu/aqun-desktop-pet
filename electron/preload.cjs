@@ -36,7 +36,7 @@ contextBridge.exposeInMainWorld('aqunPet', {
 
   previewSettings: (partial) => ipcRenderer.send('settings-live', partial),
 
-  previewPetScale: (scale) => ipcRenderer.send('pet-scale-live', scale),
+  previewPetScale: (scale) => ipcRenderer.invoke('preview-pet-scale', scale),
 
   setWindowScaleLive: (scale) => ipcRenderer.send('window-scale-live', scale),
 
@@ -150,6 +150,12 @@ contextBridge.exposeInMainWorld('aqunPet', {
     return () => ipcRenderer.removeListener('play-preview-anim', handler);
   },
 
+  onPetActionShortcut: (callback) => {
+    const handler = (_event, actionId) => callback(actionId);
+    ipcRenderer.on('pet-action-shortcut', handler);
+    return () => ipcRenderer.removeListener('pet-action-shortcut', handler);
+  },
+
   onGlobalMouse: (callback) => {
 
     const handler = (_event, payload) => callback(payload);
@@ -158,6 +164,12 @@ contextBridge.exposeInMainWorld('aqunPet', {
 
     return () => ipcRenderer.removeListener('global-mouse', handler);
 
+  },
+
+  onAiSuggestion: (callback) => {
+    const handler = (_event, payload) => callback(payload);
+    ipcRenderer.on('ai-suggestion', handler);
+    return () => ipcRenderer.removeListener('ai-suggestion', handler);
   },
 
   toggleSettings: () => ipcRenderer.send('toggle-settings'),

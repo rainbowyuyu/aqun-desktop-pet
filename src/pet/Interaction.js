@@ -230,7 +230,7 @@ export class Interaction {
   _inOverlayUI(e) {
     return Boolean(
       e.target.closest(
-        '#first-tutorial.is-open, #birthday-intro, [data-ui-overlay]',
+        '#first-tutorial.is-open, #birthday-intro, [data-ui-overlay], #reminder-hud, #bubble.bubble--dismissible',
       ),
     );
   }
@@ -505,7 +505,7 @@ export class Interaction {
 
     if (isDouble) {
       this._clickTimes = [];
-      this.fsm.wave();
+      this.fsm.spin();
       this._spawnRipple(e);
       return;
     }
@@ -515,7 +515,7 @@ export class Interaction {
 
     if (this._clickTimes.length >= 3) {
       this._clickTimes = [];
-      this.fsm.spin();
+      this.fsm.wave();
       this._spawnRipple(e);
       return;
     }

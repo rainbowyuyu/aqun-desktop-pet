@@ -5,6 +5,7 @@ import { CalendarPanel } from './pet/CalendarPanel.js';
 import { DEFAULT_WEATHER_CITY } from './pet/locationDefaults.js';
 import { SitesPanel } from './pet/SitesPanel.js';
 import { resolveModelFile } from './pet/modelRegistry.js';
+import { clearLocalPetData } from './pet/clearLocalPetData.js';
 
 class PanelApp {
   constructor() {
@@ -54,11 +55,17 @@ class PanelApp {
       panel: document.getElementById('settings-panel'),
       closeBtn: document.getElementById('settings-close'),
       onLiveChange: (partial) => {
-        if ('petScale' in partial && Object.keys(partial).length === 1) {
-          window.aqunPet?.previewPetScale?.(partial.petScale);
-          return;
+        if (partial.petScale != null) {
+          const scale = Number(partial.petScale);
+          if (Number.isFinite(scale)) {
+            window.aqunPet?.previewPetScale?.(scale);
+          }
         }
-        window.aqunPet?.previewSettings?.(partial);
+        const rest = { ...partial };
+        delete rest.petScale;
+        if (Object.keys(rest).length > 0) {
+          window.aqunPet?.previewSettings?.(rest);
+        }
       },
       onChange: (partial) => window.aqunPet?.updateSettings?.(partial),
       modelPicker: this.modelPicker,
@@ -81,6 +88,9 @@ class PanelApp {
     this.modelPicker.mount();
 
     const saved = await window.aqunPet?.getSettings?.().catch(() => null);
+    if (saved?.welcomeExperiencePending) {
+      clearLocalPetData();
+    }
     if (saved) {
       Object.assign(this.settings, saved);
       this.settingsPanel.applySettings(saved);

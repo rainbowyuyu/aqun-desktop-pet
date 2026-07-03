@@ -4,7 +4,7 @@ const STEPS = [
   {
     icon: 'drag',
     title: '左键拖动',
-    desc: '按住阿群，把她拖到桌面任意位置。',
+    desc: '按住模型，把她拖到桌面任意位置。',
   },
   {
     icon: 'resize',
@@ -24,7 +24,7 @@ const STEPS = [
   {
     icon: 'panel',
     title: '控制中心',
-    desc: '任务栏托盘找到阿群图标，点「✦ 控制中心」。',
+    desc: '任务栏托盘找到模型图标，点「✦ 控制中心」。',
   },
 ];
 

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-03T11:20:19.371Z",
+  "files": {
+    "aqun.glb": {
+      "size": 61506644,
+      "sha256": "5eb1cf36bc6eb17bea34a489e44ce15d1ddee57c0a1adf3ad0630c804c0b264f"
+    },
+    "aqun_rig.glb": {
+      "size": 77065040,
+      "sha256": "eefc4157b713f003b6b540f9a53ca74934397ad0503437821009514511e0a262"
+    },
+    "ty.glb": {
+      "size": 61763120,
+      "sha256": "838405b4ce3475c048b9ba039327850cd5006d6677c1bddbc6185425d1f1618a"
+    },
+    "ty_rig.glb": {
+      "size": 80006644,
+      "sha256": "bbd55913d9d34ef1c6e2df7803f12e28a00f5145c04e5ab398f94f613690f65f"
+    }
+  }
+}

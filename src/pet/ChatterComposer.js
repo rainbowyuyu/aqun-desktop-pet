@@ -1,9 +1,12 @@
 /** 空闲话语编排 — 关心 / 热梗 / 天气建议，频率可控 */
+import { pickBubbleLine } from './bubbleCopy.js';
+
 export class ChatterComposer {
-  constructor({ chatterFeed, weatherFeed, getSettings }) {
+  constructor({ chatterFeed, weatherFeed, getSettings, getBubbleContext }) {
     this.chatterFeed = chatterFeed;
     this.weatherFeed = weatherFeed;
     this.getSettings = getSettings;
+    this.getBubbleContext = getBubbleContext;
   }
 
   setEnabled(on) {
@@ -25,11 +28,12 @@ export class ChatterComposer {
     return [];
   }
 
-  pickLine(category) {
+  pickLine(category, ctx) {
     if (category !== 'idle') return null;
     const s = this.getSettings?.() || {};
     if (s.idleChatter === false) return null;
 
+    const context = ctx || this.getBubbleContext?.() || {};
     const roll = Math.random();
 
     if (roll < 0.1) {
@@ -40,6 +44,10 @@ export class ChatterComposer {
     if (s.networkChatter !== false && roll < 0.24) {
       const hot = this.chatterFeed.pickLine(category);
       if (hot) return hot;
+    }
+
+    if (roll < 0.38) {
+      return pickBubbleLine('idle', context);
     }
 
     return null;

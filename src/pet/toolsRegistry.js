@@ -3,6 +3,37 @@ export { TOOL_APPS } from './tools/toolDefinitions.js';
 
 export const SITE_GROUPS = [
   {
+    id: 'pinned',
+    label: '置顶',
+    pinned: true,
+    links: [
+      {
+        id: 'wiscomper',
+        name: '智算视界',
+        desc: '公式识别 · Manim 动画 · AI 数学助手',
+        url: 'https://www.wiscomper.com/',
+        accent: '#6366f1',
+        icon: '✦',
+      },
+      {
+        id: 'tarot',
+        name: '塔罗牌',
+        desc: '手势驱动 · 塔罗预测系统',
+        url: 'https://rainbowyu.com.cn/pages/tarot/',
+        accent: '#8b5cf6',
+        icon: '🔮',
+      },
+      {
+        id: 'qun-preview',
+        name: '阿群模型预览',
+        desc: '云想衣裳 · 3D 模型在线预览',
+        url: 'https://rainbowyu.com.cn/pages/qun/',
+        accent: '#e07898',
+        icon: '◐',
+      },
+    ],
+  },
+  {
     id: 'study',
     label: '学习科研',
     links: [

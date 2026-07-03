@@ -25,6 +25,12 @@ export function validateLibrary(lib) {
   return true;
 }
 
+export function validateLibraryForModel(lib, modelId) {
+  if (!validateLibrary(lib)) return false;
+  if (!modelId || !lib.modelId) return true;
+  return lib.modelId === modelId;
+}
+
 export function cloneLibrary(lib) {
   return JSON.parse(JSON.stringify(lib));
 }
@@ -57,13 +63,14 @@ export function hasEulerOffset(euler, eps = 1e-4) {
   return Math.abs(euler[0]) > eps || Math.abs(euler[1]) > eps || Math.abs(euler[2]) > eps;
 }
 
-/** 将姿势数据烘焙为 boneName → quaternion */
+/** 将姿势数据烘焙为 boneName → quaternion（键为 skeleton 实际骨名，兼容带点/无点别名） */
 export function bakePoseQuaternions(controller, poseBones) {
   const out = new Map();
   if (!poseBones) return out;
   for (const [name, entry] of Object.entries(poseBones)) {
+    const bone = controller.getBone(name);
     const q = controller.computeBoneQuaternion(name, entry?.euler ?? [0, 0, 0]);
-    if (q) out.set(name, q);
+    if (q && bone) out.set(bone.name, q);
   }
   return out;
 }
@@ -168,6 +175,20 @@ export function expandArmPresetToPose(side, preset, skeleton) {
   return bones;
 }
 
-export function mergeBoneMaps(...maps) {
-  return Object.assign({}, ...maps);
+export function mirrorPoseBones(bones) {
+  const out = {};
+  for (const [name, entry] of Object.entries(bones ?? {})) {
+    const e = entry?.euler ?? [0, 0, 0];
+    out[name] = {
+      euler: [e[0], -e[1], -e[2]],
+      locked: entry?.locked ?? false,
+    };
+  }
+  return out;
 }
+
+export function smoothstep(t) {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * (3 - 2 * x);
+}
+

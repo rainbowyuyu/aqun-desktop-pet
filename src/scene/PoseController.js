@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { boneNameKeys, resolveBindEntry, resolveBoneOnSkeleton } from './boneNameUtils.js';
 import { EULER_ORDER } from './PoseLibrary.js';
 
 function quatFromEuler(x, y, z) {
@@ -52,8 +53,12 @@ export class PoseController {
     this._bindPositions.clear();
     this.skeleton.pose();
     this.skeleton.bones.forEach((bone) => {
-      this._bindQuats.set(bone.name, bone.quaternion.clone());
-      this._bindPositions.set(bone.name, bone.position.clone());
+      const q = bone.quaternion.clone();
+      const p = bone.position.clone();
+      for (const key of boneNameKeys(bone.name)) {
+        this._bindQuats.set(key, q);
+        this._bindPositions.set(key, p);
+      }
     });
     this._liveEuler.clear();
     this._livePosition.clear();
@@ -64,7 +69,7 @@ export class PoseController {
   }
 
   getBone(name) {
-    return this.skeleton?.bones.find((b) => b.name === name) ?? null;
+    return resolveBoneOnSkeleton(this.skeleton, name);
   }
 
   isLocked(name) {
@@ -98,7 +103,7 @@ export class PoseController {
 
   _computeBoneEuler(name) {
     const bone = this.getBone(name);
-    const bind = this._bindQuats.get(name);
+    const bind = resolveBindEntry(this._bindQuats, name);
     if (!bone || !bind) return [0, 0, 0];
 
     const delta = bind.clone().invert().multiply(bone.quaternion.clone());
@@ -121,7 +126,7 @@ export class PoseController {
 
   _computeBonePosition(name) {
     const bone = this.getBone(name);
-    const bind = this._bindPositions.get(name);
+    const bind = resolveBindEntry(this._bindPositions, name);
     if (!bone || !bind) return [0, 0, 0];
     return [
       bone.position.x - bind.x,
@@ -138,7 +143,7 @@ export class PoseController {
 
   setBonePosition(name, position, { skipLive = false } = {}) {
     const bone = this.getBone(name);
-    const bind = this._bindPositions.get(name);
+    const bind = resolveBindEntry(this._bindPositions, name);
     if (!bone || !bind) return;
     const p = position ?? [0, 0, 0];
     bone.position.set(bind.x + p[0], bind.y + p[1], bind.z + p[2]);
@@ -147,7 +152,7 @@ export class PoseController {
 
   setBoneEuler(name, euler, { skipLive = false } = {}) {
     const bone = this.getBone(name);
-    const bind = this._bindQuats.get(name);
+    const bind = resolveBindEntry(this._bindQuats, name);
     if (!bone || !bind) return;
     const e = euler ?? [0, 0, 0];
     bone.quaternion.copy(bind).multiply(quatFromEuler(e[0], e[1], e[2]));
@@ -155,14 +160,14 @@ export class PoseController {
   }
 
   computeBoneQuaternion(name, euler) {
-    const bind = this._bindQuats.get(name);
+    const bind = resolveBindEntry(this._bindQuats, name);
     if (!bind) return null;
     return bind.clone().multiply(quatFromEuler(euler[0], euler[1], euler[2]));
   }
 
   resetBone(name) {
-    const bind = this._bindQuats.get(name);
-    const bindPos = this._bindPositions.get(name);
+    const bind = resolveBindEntry(this._bindQuats, name);
+    const bindPos = resolveBindEntry(this._bindPositions, name);
     const bone = this.getBone(name);
     if (bind && bone) bone.quaternion.copy(bind);
     if (bindPos && bone) bone.position.copy(bindPos);
@@ -186,7 +191,7 @@ export class PoseController {
       if (entry?.position) {
         this.setBonePosition(name, entry.position);
       } else {
-        const bindPos = this._bindPositions.get(name);
+        const bindPos = resolveBindEntry(this._bindPositions, name);
         const bone = this.getBone(name);
         if (bindPos && bone) bone.position.copy(bindPos);
         this._livePosition.delete(name);

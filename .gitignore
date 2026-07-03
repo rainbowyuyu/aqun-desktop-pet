@@ -35,6 +35,7 @@ public/models/_probe.glb
 # 用户数据（若误放在项目目录）
 settings.json
 *.poses.local.json
+electron/aiSecrets.local.cjs
 
 # 临时文件
 tmp/

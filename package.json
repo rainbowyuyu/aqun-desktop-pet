@@ -3,7 +3,7 @@
   "version": "2.4.0",
   "private": true,
   "author": "rainbowyuyu",
-  "description": "阿群 3D 桌面模型 — 互动、提醒与工具",
+  "description": "3D 桌面模型 — 互动、提醒与工具",
   "repository": {
     "type": "git",
     "url": "https://github.com/rainbowyuyu/aqun-desktop-pet.git"
@@ -19,8 +19,8 @@
     "build:renderer": "vite build",
     "build:icon": "node scripts/generate-icon.cjs",
     "start": "electron .",
-    "build:win": "node scripts/generate-icon.cjs && vite build && electron-builder --win --dir && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
-    "build:installer": "node scripts/generate-icon.cjs && vite build && electron-builder --win && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
+    "build:win": "node scripts/generate-icon.cjs && node scripts/ensure-ai-secrets.mjs && node scripts/generate-models-manifest.mjs && vite build && electron-builder --win --dir && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
+    "build:installer": "node scripts/generate-icon.cjs && node scripts/ensure-ai-secrets.mjs && node scripts/generate-models-manifest.mjs && vite build && electron-builder --win && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
     "check-update": "node scripts/check-update.mjs",
     "update:build": "powershell -ExecutionPolicy Bypass -File scripts/pull-and-build.ps1"
   },

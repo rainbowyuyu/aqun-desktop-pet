@@ -24,6 +24,8 @@ const path = require('path');
 
 const fs = require('fs');
 
+const { pathToFileURL } = require('url');
+
 const {
   startKeyboardListener,
   stopKeyboardListener,
@@ -32,6 +34,7 @@ const {
   isKeyboardAvailable,
 } = require('./keyboard.cjs');
 const { startGlobalMouseTracker, stopGlobalMouseTracker } = require('./mouseTracker.cjs');
+const aiAssistant = require('./aiAssistant.cjs');
 const {
   initContextPopup,
   showContextPopup,
@@ -60,7 +63,13 @@ const {
   getDeviceLocation,
 } = require('./geolocation.cjs');
 const { checkForUpdate } = require('./updateChecker.cjs');
+const {
+  resolveActionShortcutBindings,
+  registerPetActionShortcuts,
+  unregisterPetActionShortcuts,
+} = require('./actionShortcuts.cjs');
 const repoConfig = require('./repoConfig.cjs');
+const { checkNewMachine, commitMachineBinding } = require('./machineBinding.cjs');
 
 const isDev = !app.isPackaged;
 
@@ -113,6 +122,48 @@ function settingsPath() {
 
 
 
+function wipeUserDataArtifacts() {
+  const userData = app.getPath('userData');
+  const poseDir = path.join(userData, 'pose-libraries');
+  if (fs.existsSync(poseDir)) {
+    fs.rmSync(poseDir, { recursive: true, force: true });
+  }
+}
+
+function performFreshMachineReset() {
+  wipeUserDataArtifacts();
+  resetRemindersToDefault();
+
+  Object.keys(settings).forEach((key) => delete settings[key]);
+  Object.assign(settings, getAllDefaults(), {
+    welcomeExperiencePending: true,
+    tutorialSeen: false,
+    birthdayIntroYear: null,
+  });
+  delete settings.panelBounds;
+
+  saveSettings();
+  console.info('[machine-binding] 检测到新电脑，已恢复默认设置并准备欢迎体验');
+}
+
+function maybeResetForNewMachine() {
+  const { isNewMachine, fingerprint } = checkNewMachine({
+    app,
+    isDev,
+    execPath: process.execPath,
+  });
+  if (!isNewMachine) return false;
+
+  performFreshMachineReset();
+  commitMachineBinding({
+    app,
+    isDev,
+    execPath: process.execPath,
+    fingerprint,
+  });
+  return true;
+}
+
 function loadSettings() {
 
   try {
@@ -139,6 +190,20 @@ function loadSettings() {
       settings.lookHandSensitivity = DEFAULT_SETTINGS.lookHandSensitivity;
     }
 
+    if (settings.actionShortcuts == null || typeof settings.actionShortcuts !== 'object') {
+      settings.actionShortcuts = { ...DEFAULT_SETTINGS.actionShortcuts };
+    } else {
+      settings.actionShortcuts = {
+        ...DEFAULT_SETTINGS.actionShortcuts,
+        ...settings.actionShortcuts,
+      };
+      if (settings.actionShortcuts.wave && !settings.actionShortcuts.headTurnLeft) {
+        settings.actionShortcuts.headTurnLeft = settings.actionShortcuts.wave;
+      }
+      delete settings.actionShortcuts.wave;
+      delete settings.actionShortcuts.nod;
+    }
+
   } catch {
 
     /* use defaults */
@@ -146,7 +211,6 @@ function loadSettings() {
   }
 
 }
-
 
 
 function saveSettings() {
@@ -180,7 +244,7 @@ function applySettingsSideEffects(partial, { resetInteraction = false } = {}) {
       settings.petScale = clampScale(settings.petScale);
       return;
     }
-    settings.petScale = clampScale(settings.petScale);
+    settings.petScale = clampScale(partial.petScale);
     applyWindowScale(settings.petScale, { keepCenter: true });
   }
 
@@ -193,7 +257,29 @@ function applySettingsSideEffects(partial, { resetInteraction = false } = {}) {
 
   if (partial.keyboardPaused != null) setKeyboardPaused(settings.keyboardPaused);
 
+  if (partial.aiEnabled === false) aiAssistant.resetBuffer();
+
   if (partial.clickThrough != null) applyClickThrough();
+
+  if ('actionShortcutsEnabled' in partial || partial.actionShortcuts) {
+    refreshActionShortcuts();
+  }
+}
+
+function triggerPetShortcutAction(actionId) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (!mainWindow.isVisible()) mainWindow.show();
+  mainWindow.focus();
+  mainWindow.webContents.send('pet-action-shortcut', actionId);
+}
+
+function refreshActionShortcuts() {
+  const bindings = resolveActionShortcutBindings(settings.actionShortcuts);
+  registerPetActionShortcuts(
+    settings.actionShortcutsEnabled !== false,
+    bindings,
+    triggerPetShortcutAction,
+  );
 }
 
 function applyFullSettingsSideEffects() {
@@ -207,6 +293,7 @@ function applyFullSettingsSideEffects() {
     },
     { resetInteraction: true },
   );
+  refreshActionShortcuts();
 }
 
 function broadcastRemindersChanged() {
@@ -355,9 +442,6 @@ function applyLivePetScale(scale, { anchor = null } = {}) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   if (isDragging || interactionMode === 'drag') return;
   const next = clampScale(scale);
-  const target = windowSizeForScale(next);
-  const [curW, curH] = mainWindow.getSize();
-  if (next === settings.petScale && curW === target.width && curH === target.height) return;
   settings.petScale = next;
   if (anchor) {
     applyWindowScale(next, { anchor });
@@ -435,7 +519,7 @@ function createSettingsWindow() {
     y: bounds.y,
     show: false,
     frame: false,
-    title: '阿群 · 控制中心',
+    title: '桌面模型 · 控制中心',
     resizable: true,
     minWidth: PANEL_MIN_WIDTH,
     minHeight: PANEL_MIN_HEIGHT,
@@ -521,16 +605,50 @@ function poseLibraryBundledPath(modelId) {
   return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
 }
 
-function readPoseLibrary(modelId) {
-  const userPath = poseLibraryUserPath(modelId);
-  if (fs.existsSync(userPath)) {
-    return JSON.parse(fs.readFileSync(userPath, 'utf8'));
-  }
+function readBundledPoseLibrary(modelId) {
   const bundled = poseLibraryBundledPath(modelId);
-  if (fs.existsSync(bundled)) {
-    return JSON.parse(fs.readFileSync(bundled, 'utf8'));
-  }
-  return null;
+  if (!fs.existsSync(bundled)) return null;
+  return JSON.parse(fs.readFileSync(bundled, 'utf8'));
+}
+
+function readUserPoseLibrary(modelId) {
+  const userPath = poseLibraryUserPath(modelId);
+  if (!fs.existsSync(userPath)) return null;
+  return JSON.parse(fs.readFileSync(userPath, 'utf8'));
+}
+
+function readPoseLibrary(modelId) {
+  const bundled = readBundledPoseLibrary(modelId);
+  const user = readUserPoseLibrary(modelId);
+  if (!bundled && !user) return null;
+  if (!user) return bundled;
+  if (!bundled) return user;
+  return {
+    ...user,
+    poses: { ...bundled.poses, ...user.poses },
+    assignments: { ...bundled.assignments, ...user.assignments },
+  };
+}
+
+function resolveModelFilePath(modelId) {
+  const id = modelId || settings.petModelId || 'aqun_rig';
+  const files = {
+    aqun_rig: 'aqun_rig.glb',
+    ty_rig: 'ty_rig.glb',
+    aqun: 'aqun.glb',
+    ty: 'ty.glb',
+    aqun_pef: 'aqun_rig.glb',
+    aqun_tripo: 'aqun_rig.glb',
+  };
+  const file = files[id] || files.aqun_rig;
+  if (isDev) return path.join(__dirname, '../public/models', file);
+
+  const candidates = [
+    path.join(process.resourcesPath, 'models', file),
+    path.join(process.resourcesPath, 'app.asar.unpacked', 'models', file),
+    path.join(app.getAppPath(), 'models', file),
+  ];
+  return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
 }
 
 function createPoseEditorWindow() {
@@ -671,6 +789,7 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     broadcastSettings();
+    notifyWindowBoundsChanged();
   });
 }
 
@@ -831,7 +950,7 @@ function createTray() {
 
   rebuildTrayMenu = rebuildMenu;
 
-  tray.setToolTip('阿群 · 3D 模型');
+  tray.setToolTip('桌面模型 · 3D 模型');
 
   tray.on('click', () => {
 
@@ -849,7 +968,17 @@ function createTray() {
 
 function setupKeyboardBridge() {
 
+  aiAssistant.configure({
+    getSettingsFn: () => settings,
+    onSuggestion: (payload) => {
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      mainWindow.webContents.send('ai-suggestion', payload);
+    },
+  });
+
   startKeyboardListener((payload) => {
+
+    aiAssistant.onKeyEvent(payload);
 
     if (!mainWindow || mainWindow.isDestroyed()) return;
 
@@ -877,35 +1006,25 @@ function setupIpc() {
   ipcMain.handle('is-keyboard-available', () => isKeyboardAvailable());
 
   ipcMain.handle('get-model-url', (_event, modelId) => {
-
     const id = modelId || settings.petModelId || 'aqun_rig';
-
     const files = {
       aqun_rig: 'aqun_rig.glb',
       ty_rig: 'ty_rig.glb',
-      aqun: 'aqun_rig.glb',
+      aqun: 'aqun.glb',
+      ty: 'ty.glb',
       aqun_pef: 'aqun_rig.glb',
       aqun_tripo: 'aqun_rig.glb',
-      ty: 'ty_rig.glb',
     };
-
     const file = files[id] || files.aqun_rig;
 
     if (isDev) return `http://localhost:5174/models/${file}`;
 
-    const candidates = [
-      path.join(process.resourcesPath, 'models', file),
-      path.join(process.resourcesPath, 'app.asar.unpacked', 'models', file),
-      path.join(app.getAppPath(), 'models', file),
-    ];
-
-    for (const p of candidates) {
-      if (fs.existsSync(p)) return `file://${p.replace(/\\/g, '/')}`;
+    const modelPath = resolveModelFilePath(id);
+    if (!fs.existsSync(modelPath)) {
+      console.warn('[get-model-url] 模型文件缺失:', modelPath);
     }
-
-    const fallback = candidates[0];
-    return `file://${fallback.replace(/\\/g, '/')}`;
-
+    // pathToFileURL 正确编码中文/空格路径，避免 GLTFLoader 在便携目录下加载失败
+    return pathToFileURL(modelPath).href;
   });
 
   ipcMain.handle('open-pose-editor', () => {
@@ -1155,7 +1274,13 @@ function setupIpc() {
 
   ipcMain.on('pet-scale-live', (_event, scale) => {
     if (interactionMode === 'drag' || isDragging) return;
-    applyLivePetScale(scale);
+    applyLivePetScale(clampScale(scale));
+  });
+
+  ipcMain.handle('preview-pet-scale', (_event, scale) => {
+    if (interactionMode === 'drag' || isDragging) return settings.petScale;
+    applyLivePetScale(clampScale(scale));
+    return settings.petScale;
   });
 
   ipcMain.handle('update-settings', (_event, partial) => {
@@ -1370,6 +1495,8 @@ app.whenReady().then(() => {
 
   }
 
+  maybeResetForNewMachine();
+
   createWindow();
 
   initContextPopup({
@@ -1390,6 +1517,7 @@ app.whenReady().then(() => {
 
   setupKeyboardBridge();
   startGlobalMouseTracker(() => mainWindow);
+  refreshActionShortcuts();
 });
 
 app.on('window-all-closed', () => {
@@ -1398,6 +1526,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   appIsQuitting = true;
+  unregisterPetActionShortcuts();
   stopGlobalMouseTracker();
   stopKeyboardListener();
   stopReminders();

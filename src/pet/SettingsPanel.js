@@ -1,11 +1,18 @@
 import { APP_VERSION, APP_VERSION_LABEL, FEATURE_SUMMARY, renderChangelogHtml, renderFeaturesHtml } from './releaseNotes.js';
+import {
+  DEFAULT_ACTION_SHORTCUTS,
+  acceleratorFromKeyboardEvent,
+  formatShortcutDisplay,
+  resolveActionShortcuts,
+  windowSizeForPetScale,
+} from './actionShortcuts.js';
 const TAB_META = {
-  about: { title: '首页', sub: '快速了解阿群 · 一键进入常用功能' },
+  about: { title: '首页', sub: '快速了解桌面模型 · 一键进入常用功能' },
   calendar: { title: '日历', sub: '课表 · 提醒 · 天气 · 日程一目了然' },
   sites: { title: '常用站点', sub: '学习 · 生活 · 工具 · 一键直达' },
   tools: { title: '小工具', sub: '效率 · 换算 · 天气 · 日常随手可用' },
   appearance: { title: '模型', sub: '换模型 · 调大小 · 透明度即时预览' },
-  interaction: { title: '互动', sub: '眼神跟随 · 键盘反馈 · 气泡与彩蛋' },
+  interaction: { title: '互动', sub: '眼神跟随 · 键盘反馈 · 动作快捷键' },
   system: { title: '窗口', sub: '置顶 · 穿透 · 锁定与提醒开关' },
   advanced: { title: '高级', sub: '重置默认 · 动画预览 · 姿势编辑器' },
 };
@@ -19,7 +26,7 @@ const RESET_CONFIRM_META = {
   },
   interaction: {
     title: '重置互动',
-    desc: '眼神总体/分项灵敏度、键盘标签、气泡、空闲话语与联网热梗等将恢复默认。',
+    desc: '眼神灵敏度、键盘标签、气泡、动作快捷键与联网热梗等将恢复默认。',
     icon: '◎',
     tone: 'sky',
   },
@@ -91,6 +98,9 @@ export class SettingsPanel {
     this._controls = {};
     this._silentApply = false;
     this._activeTab = 'about';
+    this._actionShortcuts = { ...DEFAULT_ACTION_SHORTCUTS };
+    this._recordingShortcutId = null;
+    this._onShortcutKeyDown = null;
 
     this._headerTitle = panel?.querySelector('[data-header-title]');
     this._headerSub = panel?.querySelector('[data-header-sub]');
@@ -102,6 +112,8 @@ export class SettingsPanel {
     this._bindTabs();
     this._bindControls();
     this._bindPercentInputs();
+    this._bindScalePresets();
+    this._bindActionShortcutList();
     this._bindLookSensExpand();
     this._bindExternalLinks();
     this._bindDevCard();
@@ -563,6 +575,8 @@ export class SettingsPanel {
           this.onLiveChange?.({ [key]: value });
           this._emit(key, value);
         });
+      } else if (el.type === 'text' || el.type === 'password') {
+        el.addEventListener('change', () => this._emit(key, el.value));
       }
     });
   }
@@ -582,6 +596,134 @@ export class SettingsPanel {
     head.addEventListener('click', () => setOpen(!wrap.classList.contains('is-open')));
   }
 
+  _previewPercentInput(key, raw, { clamp = false } = {}) {
+    const cfg = PERCENT_FIELDS[key];
+    if (!cfg || this._silentApply) return;
+    if (!Number.isFinite(raw)) return;
+
+    const display = clamp
+      ? Math.min(cfg.max, Math.max(cfg.min, Math.round(raw)))
+      : raw;
+    if (!clamp && (display < cfg.min || display > cfg.max)) return;
+
+    const value = display / cfg.scale;
+    const slider = this._controls[key];
+    if (slider) slider.value = String(value);
+    if (key === 'petScale') {
+      this._updateLabel(key, value);
+      this._updateScaleHint(value);
+      this._syncScalePresetActive(value);
+    }
+    this.onLiveChange?.({ [key]: value });
+    return value;
+  }
+
+  _bindScalePresets() {
+    const presets = this.panel?.querySelectorAll('[data-scale-preset]');
+    if (!presets?.length) return;
+
+    const applyScale = (scale) => {
+      const value = Math.max(0.6, Math.min(1.8, Number(scale) || 1));
+      if (this._controls.petScale) this._controls.petScale.value = String(value);
+      this._updateLabel('petScale', value);
+      this._updateScaleHint(value);
+      this._syncScalePresetActive(value);
+      this.onLiveChange?.({ petScale: value });
+      this._emit('petScale', value);
+    };
+
+    presets.forEach((btn) => {
+      btn.addEventListener('click', () => applyScale(btn.dataset.scalePreset));
+    });
+
+    const slider = this._controls.petScale;
+    slider?.addEventListener('input', () => {
+      this._syncScalePresetActive(Number(slider.value));
+      this._updateScaleHint(Number(slider.value));
+    });
+  }
+
+  _syncScalePresetActive(scale) {
+    const value = Number(scale);
+    this.panel?.querySelectorAll('[data-scale-preset]').forEach((btn) => {
+      const preset = Number(btn.dataset.scalePreset);
+      btn.classList.toggle('is-active', Math.abs(preset - value) < 0.001);
+    });
+  }
+
+  _updateScaleHint(scale) {
+    const el = this.panel?.querySelector('[data-scale-size-hint]');
+    if (!el) return;
+    const { width, height } = windowSizeForPetScale(scale);
+    const pct = Math.round((Number(scale) || 1) * 100);
+    el.textContent = `窗口约 ${width} × ${height} px（${pct}%）· 也可在模型窗口右键左右拖动缩放`;
+  }
+
+  _bindActionShortcutList() {
+    this._shortcutList = this.panel?.querySelector('[data-action-shortcut-list]');
+    if (!this._shortcutList) return;
+    this._renderActionShortcutList();
+  }
+
+  _renderActionShortcutList() {
+    if (!this._shortcutList) return;
+    const bindings = resolveActionShortcuts(this._actionShortcuts);
+    this._shortcutList.innerHTML = bindings
+      .map(
+        (item) => `
+      <li class="aq-shortcut-item">
+        <button
+          type="button"
+          class="aq-shortcut-key${this._recordingShortcutId === item.id ? ' is-recording' : ''}"
+          data-shortcut-id="${item.id}"
+          title="点击后按下新快捷键"
+        >${this._recordingShortcutId === item.id ? '请按键…' : formatShortcutDisplay(item.accelerator)}</button>
+        <div class="aq-shortcut-body">
+          <strong>${item.label}</strong>
+          <small>${item.desc}</small>
+        </div>
+      </li>`,
+      )
+      .join('');
+
+    this._shortcutList.querySelectorAll('[data-shortcut-id]').forEach((btn) => {
+      btn.addEventListener('click', () => this._startShortcutRecording(btn.dataset.shortcutId));
+    });
+  }
+
+  _startShortcutRecording(id) {
+    if (this._recordingShortcutId === id) {
+      this._stopShortcutRecording();
+      return;
+    }
+    this._stopShortcutRecording();
+    this._recordingShortcutId = id;
+    this._renderActionShortcutList();
+    this._onShortcutKeyDown = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        this._stopShortcutRecording();
+        return;
+      }
+      const acc = acceleratorFromKeyboardEvent(e);
+      if (!acc) return;
+      this._actionShortcuts = { ...this._actionShortcuts, [id]: acc };
+      this._stopShortcutRecording();
+      this._emit('actionShortcuts', { ...this._actionShortcuts });
+    };
+    window.addEventListener('keydown', this._onShortcutKeyDown, true);
+  }
+
+  _stopShortcutRecording() {
+    this._recordingShortcutId = null;
+    if (this._onShortcutKeyDown) {
+      window.removeEventListener('keydown', this._onShortcutKeyDown, true);
+      this._onShortcutKeyDown = null;
+    }
+    this._renderActionShortcutList();
+  }
+
   _bindPercentInputs() {
     this.panel?.querySelectorAll('[data-input-for]').forEach((input) => {
       const key = input.dataset.inputFor;
@@ -589,14 +731,7 @@ export class SettingsPanel {
       if (!cfg) return;
 
       input.addEventListener('input', () => {
-        if (this._silentApply) return;
-        const raw = Number(input.value);
-        if (!Number.isFinite(raw)) return;
-        const clamped = Math.min(cfg.max, Math.max(cfg.min, raw));
-        const value = clamped / cfg.scale;
-        const slider = this._controls[key];
-        if (slider) slider.value = String(value);
-        this.onLiveChange?.({ [key]: value });
+        this._previewPercentInput(key, Number(input.value));
       });
 
       input.addEventListener('change', () => {
@@ -611,7 +746,12 @@ export class SettingsPanel {
         const value = clamped / cfg.scale;
         input.value = String(clamped);
         if (this._controls[key]) this._controls[key].value = String(value);
+        this._previewPercentInput(key, clamped, { clamp: true });
         this._emit(key, value);
+      });
+
+      input.addEventListener('blur', () => {
+        input.dispatchEvent(new Event('change'));
       });
     });
   }
@@ -647,6 +787,19 @@ export class SettingsPanel {
       else el.value = String(value);
       this._updateLabel(key, value);
     });
+    if (settings.petScale != null) {
+      this._updateScaleHint(settings.petScale);
+      this._syncScalePresetActive(settings.petScale);
+    }
+    if (settings.actionShortcuts) {
+      this._actionShortcuts = {
+        ...DEFAULT_ACTION_SHORTCUTS,
+        ...settings.actionShortcuts,
+      };
+      delete this._actionShortcuts.wave;
+      delete this._actionShortcuts.nod;
+      this._renderActionShortcutList();
+    }
     this.modelPicker?.syncActive();
     this._silentApply = false;
   }

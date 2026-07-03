@@ -26,7 +26,7 @@ export class SitesPanel {
 
     host.innerHTML = SITE_GROUPS.map(
       (group) => `
-        <section class="sites-group">
+        <section class="sites-group${group.pinned ? ' sites-group--pinned' : ''}">
           <h3 class="sites-group-label">${group.label}</h3>
           <div class="tools-site-grid sites-grid">
             ${group.links

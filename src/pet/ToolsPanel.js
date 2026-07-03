@@ -16,7 +16,7 @@ export class ToolsPanel {
       <div class="tools-hub">
         <div class="tools-launcher" data-tools-launcher>
           <div class="tools-launcher-toolbar">
-            <input type="search" class="tools-filter-input" data-tools-filter placeholder="搜索工具…（LaTeX、JSON、密码…）" />
+            <input type="search" class="tools-filter-input" data-tools-filter placeholder="搜索工具…（文献、番茄钟、LaTeX…）" />
             <span class="tools-filter-count" data-tools-count>${TOOL_APPS.length} 个工具</span>
           </div>
           <div class="tools-launcher-grid" data-tools-grid></div>
@@ -91,14 +91,17 @@ export class ToolsPanel {
   }
 
   _startPomo(displayEl, modeEl, startBtn) {
+
     this._pomo.running = true;
-    startBtn.textContent = '暂停';
+    if (startBtn) startBtn.textContent = '暂停';
     clearInterval(this._pomo.timer);
     this._pomo.timer = setInterval(() => {
       this._pomo.left -= 1;
       if (this._pomo.left <= 0) {
-        this._pomo.mode = this._pomo.mode === 'focus' ? 'break' : 'focus';
+        const prevMode = this._pomo.mode;
+        this._pomo.mode = prevMode === 'focus' ? 'break' : 'focus';
         this._pomo.left = this._pomo.mode === 'focus' ? 25 * 60 : 5 * 60;
+        this._pomoOnPhaseEnd?.(prevMode);
       }
       this._updatePomoDisplay(displayEl, modeEl);
     }, 1000);

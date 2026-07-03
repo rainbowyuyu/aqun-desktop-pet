@@ -4,11 +4,9 @@ import { PetLighting } from '../scene/PetLighting.js';
 import { HeadBodyRig } from '../scene/HeadBodyRig.js';
 import { SkeletalRig } from '../scene/SkeletalRig.js';
 import { loadPartsConfig } from '../scene/GltfParts.js';
+import { getModelProfile } from '../scene/modelProfiles.js';
+import { validateLibraryForModel } from '../scene/PoseLibrary.js';
 import { loadMessageForProgress } from './bubbleCopy.js';
-
-const VIEW_BASE_WIDTH = 320;
-const VIEW_BASE_HEIGHT = 480;
-const VIEW_ASPECT = VIEW_BASE_WIDTH / VIEW_BASE_HEIGHT;
 
 export class PetScene {
   constructor(canvas) {
@@ -44,7 +42,7 @@ export class PetScene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 1.14;
 
     this.lighting = new PetLighting(this.scene, this.renderer);
     this.modelLoader = new ModelLoader();
@@ -90,6 +88,10 @@ export class PetScene {
       this._disposeObject3D(child);
     }
 
+    this.lookGroup.rotation.set(0, 0, 0);
+    this.modelGroup.rotation.set(0, 0, 0);
+    this.modelGroup.position.set(0, 0, 0);
+
     this.model = null;
     this.meshes = [];
     this._headLookApply = null;
@@ -108,6 +110,8 @@ export class PetScene {
 
   async _loadModelInternal(url, onProgress, modelId = 'aqun_rig') {
     this.clearModel();
+    const profile = getModelProfile(modelId);
+    this.modelLoader.setProfile(profile);
     this.modelLoader.onProgress = onProgress;
     const result = await this.modelLoader.loadWithRetry(url, 3);
     if (!result?.model) throw new Error('模型为空');
@@ -117,13 +121,17 @@ export class PetScene {
     this.userScaleGroup.add(this.model);
 
     const partsConfig = await loadPartsConfig(modelId, import.meta.env.BASE_URL, url);
+    this.skeletalRig.setProfile(profile);
     this.skeletalRig.setup(this.model);
 
     if (this.skeletalRig.isActive) {
-      await this.skeletalRig.loadPoseLibraryFromUrl(
-        `${import.meta.env.BASE_URL}models/${modelId}.poses.json`,
-      );
+      try {
+        await this._loadPoseLibrary(modelId);
+      } catch (err) {
+        console.warn('[PetScene] pose library load failed, using bind pose', err);
+      }
       this.headBodyRig.mode = 'skeleton';
+      this.skeletalRig.resetSkeletonToBind();
       console.info('[PetScene] 蒙皮骨骼模式');
     } else {
       await this.headBodyRig.setup(this.model, this.modelLoader.bounds, this.userScaleGroup, {
@@ -186,21 +194,13 @@ export class PetScene {
   }
 
   onResize(explicitW, explicitH) {
-    let w = Math.max(1, explicitW || window.innerWidth);
-    let h = Math.max(1, explicitH || window.innerHeight);
+    const canvas = this.canvas;
+    // 以 canvas 实际显示尺寸为准，避免 setSize 与 CSS 100% 不一致导致画面拉伸/扭曲
+    const w = Math.max(1, canvas.clientWidth || explicitW || window.innerWidth);
+    const h = Math.max(1, canvas.clientHeight || explicitH || window.innerHeight);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
 
-    if (!explicitW || !explicitH) {
-      const ratio = w / h;
-      if (Math.abs(ratio - VIEW_ASPECT) > 0.012) {
-        h = Math.round(w / VIEW_ASPECT);
-      }
-    } else {
-      const ratio = w / h;
-      if (Math.abs(ratio - VIEW_ASPECT) > 0.012) {
-        h = Math.round(w / VIEW_ASPECT);
-      }
-    }
-
+    this.renderer.setPixelRatio(dpr);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h, false);
@@ -213,11 +213,13 @@ export class PetScene {
     this.modelLoader.update(delta);
     if (this.skeletalRig?.isActive) {
       const clipDrives = this.modelLoader.isSkinnedClipDriving?.();
+      const headGesture = this.modelLoader.isHeadGestureActive?.();
       if (!clipDrives) {
         this.skeletalRig.preMixerUpdate();
-        this.skeletalRig.applyIdleMotion(delta);
+        this.skeletalRig.applyArmPoseLayer(delta, {
+          gesturing: !!headGesture,
+        });
       }
-      const headGesture = this.modelLoader.isHeadGestureActive?.();
       if (headGesture) {
         this.skeletalRig.snapshotGestureHeadPose();
       } else {
@@ -225,7 +227,21 @@ export class PetScene {
         this.skeletalRig.restoreHeadNeckBind();
       }
       if (this._skeletalLookApply) {
-        this.skeletalRig.applyLook(this._skeletalLookApply);
+        const ctx = this._skeletalAnimCtx ?? {};
+        this.skeletalRig.applyLook({
+          ...this._skeletalLookApply,
+          delta,
+          typing: !!ctx.typing,
+          typingEnergy: ctx.typingEnergy ?? 0,
+        });
+        this.skeletalRig.applyLifeRhythmEffect(delta, {
+          typing: !!ctx.typing,
+          typingEnergy: ctx.typingEnergy ?? 0,
+        });
+        if (ctx.typing && (ctx.typingEnergy ?? 0) > 0.05) {
+          this.skeletalRig.applyTypingEffect(delta, ctx.typingEnergy);
+        }
+        this.skeletalRig.applyHeadLifeRhythm(delta);
       }
       this.skeletalRig.finalizeUpdate();
     } else if (this._headLookApply) {
@@ -253,6 +269,31 @@ export class PetScene {
 
   shouldRender() {
     return this._visible;
+  }
+
+  async _loadPoseLibrary(modelId) {
+    let library = null;
+    try {
+      library = await window.aqunPet?.getPoseLibrary?.(modelId);
+    } catch (err) {
+      console.warn('[PetScene] pose library IPC load failed', err);
+    }
+
+    if (library && !validateLibraryForModel(library, modelId)) {
+      console.warn('[PetScene] 姿势库与模型不匹配，改用 bundled', { modelId, got: library.modelId });
+      library = null;
+    }
+
+    if (library) {
+      this.skeletalRig.applyPoseLibrary(library);
+    } else {
+      const bundledUrl = `${import.meta.env.BASE_URL}models/${modelId}.poses.json`;
+      await this.skeletalRig.loadPoseLibraryFromUrl(bundledUrl);
+    }
+
+    if (this.skeletalRig.hasPoseLibrary?.()) {
+      this.modelLoader.setIdleClipWeight?.(0);
+    }
   }
 
   render() {

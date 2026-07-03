@@ -1,10 +1,15 @@
 import * as THREE from 'three';
 import {
   bakePoseQuaternions,
+  blendPoseData,
   cloneLibrary,
+  ease,
+  mirrorPoseBones,
   validateLibrary,
 } from './PoseLibrary.js';
 import { PoseController } from './PoseController.js';
+import { resolveBindEntry } from './boneNameUtils.js';
+import { getModelProfile } from './modelProfiles.js';
 
 const HEAD_NAMES = ['c_head.x', 'head.x', 'headx', 'Head', 'head', 'mixamorig:Head'];
 const NECK_NAMES = ['c_neck.x', 'neck.x', 'neckx', 'Neck', 'mixamorig:Neck'];
@@ -41,54 +46,22 @@ const LEG_R = {
   foot: ['foot.r', 'footr'],
 };
 
-const FINGER_CHAINS_L = [
-  { names: ['c_thumb2.l', 'c_thumb3.l'], curls: [0.08, 0.12] },
-  { names: ['c_index1_base.l', 'c_index2.l', 'c_index3.l'], curls: [0.1, 0.14, 0.1] },
-  { names: ['c_middle1_base.l', 'c_middle2.l', 'c_middle3.l'], curls: [0.1, 0.15, 0.11] },
-  { names: ['c_ring1_base.l', 'c_ring2.l', 'c_ring3.l'], curls: [0.11, 0.16, 0.12] },
-  { names: ['c_pinky1_base.l', 'c_pinky2.l', 'c_pinky3.l'], curls: [0.12, 0.17, 0.13] },
-];
-const FINGER_CHAINS_R = [
-  { names: ['c_thumb2.r', 'c_thumb3.r'], curls: [0.08, 0.12] },
-  { names: ['c_index1_base.r', 'c_index2.r', 'c_index3.r'], curls: [0.1, 0.14, 0.1] },
-  { names: ['c_middle1_base.r', 'c_middle2.r', 'c_middle3.r'], curls: [0.1, 0.15, 0.11] },
-  { names: ['c_ring1_base.r', 'c_ring2.r', 'c_ring3.r'], curls: [0.11, 0.16, 0.12] },
-  { names: ['c_pinky1_base.r', 'c_pinky2.r', 'c_pinky3.r'], curls: [0.12, 0.17, 0.13] },
-];
-
-/** A-pose：袖子→shoulder，小臂/手掌→arm/forearm/hand，指尖网格→全部指骨 */
-const ARM_APOSE_L = {
-  shoulder: [0.35, 0.04, -1.15],
-  upper: [1.85, 0.03, -0.15],
-  forearm: [0.82, 0.01, 0.08],
-  hand: [0.35, 0.01, 0.03],
-  fingerHang: [1.55, 0.02, -0.12],
-};
-const ARM_APOSE_R = {
-  shoulder: [0.35, -0.04, 1.15],
-  upper: [1.85, -0.03, 0.15],
-  forearm: [0.82, -0.01, -0.08],
-  hand: [0.35, -0.01, -0.03],
-  fingerHang: [1.55, -0.02, 0.12],
+const DEFAULT_LIFE = { period: 3.6, amp: { shoulder: 0.004, upper: 0.005, forearm: 0.007, hand: 0.006, head: 0.0045, neck: 0.0035 } };
+const DEFAULT_LOOK = {
+  bodyFullY: 0.12, bodyFullX: 0.14, bodyIntensity: 1, groupBodyY: 0.34, groupBodyX: 0.14,
+  handSmooth: 3.8, torsoSmooth: 9, sideSmooth: 7, handBoneSmooth: 3.2, torsoBoneSmooth: 5.5, viewBreathSmooth: 3.2,
 };
 
-const ARM_TYPING_L = {
-  shoulder: [0.32, 0.04, -1.0],
-  upper: [1.55, 0.03, -0.22],
-  forearm: [0.72, 0.02, 0.06],
-  hand: [0.3, 0.02, 0.02],
-  fingerHang: [1.35, 0.02, -0.08],
-};
-const ARM_TYPING_R = {
-  shoulder: [0.32, -0.04, 1.0],
-  upper: [1.55, -0.03, 0.22],
-  forearm: [0.72, -0.02, -0.06],
-  hand: [0.3, -0.02, -0.02],
-  fingerHang: [1.35, -0.02, 0.08],
-};
+const POSE_BLEND_SMOOTH = 8;
 
-const ARM_SEGMENTS = ['shoulder', 'upper', 'forearm', 'hand'];
-const FINGER_BONE_PATTERN = /thumb|index|middle|ring|pinky/i;
+function isLookLimbBone(name) {
+  return /^(hand|foot|toes_01|c_leg_stretch)/i.test(name);
+}
+
+function expSmoothing(current, target, delta, speed) {
+  const t = 1 - Math.exp(-Math.max(speed, 0.001) * Math.max(delta, 0.001));
+  return current + (target - current) * t;
+}
 
 function findBone(skeleton, names) {
   if (!skeleton?.bones) return null;
@@ -112,19 +85,16 @@ function findBone(skeleton, names) {
   return null;
 }
 
-function buildFingerChains(skeleton, defs) {
-  return defs.map(({ names, curls }) => ({
-    bones: names.map((n) => findBone(skeleton, [n, n.replace(/\./g, '')])),
-    curls,
-  }));
-}
-
 function quatFromEuler(x, y, z) {
   return new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z, 'XYZ'));
 }
 
 function clampLook(v, min, max) {
   return Math.max(min, Math.min(max, v));
+}
+
+function scaleEuler(euler, gain) {
+  return [euler[0] * gain, euler[1] * gain, euler[2] * gain];
 }
 
 function applyLookOnBoneLocal(bone, baseQuat, pitch, yaw) {
@@ -136,17 +106,12 @@ function applyLookOnBoneLocal(bone, baseQuat, pitch, yaw) {
   bone.quaternion.copy(baseQuat).multiply(lookQ);
 }
 
-function applyOffsetFromBind(bone, bindQuats, x, y, z) {
+function applyOffsetFromCurrent(bone, x, y, z) {
   if (!bone) return;
-  const bind = bindQuats.get(bone.uuid);
-  if (bind) bone.quaternion.copy(bind);
   bone.quaternion.multiply(quatFromEuler(x, y, z));
 }
 
-function applyEuler(bone, x, y, z) {
-  if (!bone) return;
-  bone.quaternion.multiply(quatFromEuler(x, y, z));
-}
+const FINGER_BONE_PATTERN = /thumb|index|middle|ring|pinky/i;
 
 function isSideBone(name, side) {
   const n = name.toLowerCase();
@@ -161,11 +126,11 @@ function collectFingerBones(skeleton, side) {
 }
 
 /**
- * 蒙皮骨骼：头身眼神分离（lookGroup 转体 + 颈/头相对转动）
- * 不叠加手臂姿势、打字手指、躯干呼吸等程序化动作
+ * 蒙皮骨骼：Blender 姿势库（待机/打字/转向）+ 手臂/头部节律微动
  */
 export class SkeletalRig {
   constructor() {
+    this._profile = getModelProfile('aqun_rig');
     this.mode = 'none';
     this.skeleton = null;
     this.headBone = null;
@@ -179,15 +144,46 @@ export class SkeletalRig {
     this.legs = { left: {}, right: {} };
     this._look = { bodyX: 0, bodyY: 0, headX: 0, headY: 0, handAmount: 0.85 };
     this._idlePhase = Math.random() * Math.PI * 2;
+    this._headLifePhase = Math.random() * Math.PI * 2;
+    this._driftSeed = Math.random() * 100;
     this._typingPhase = 0;
+    this._poseBlendT = 0;
+    this._poseBlendTarget = 0;
+    this._animCtx = { typing: false, typingEnergy: 0, gesturing: false };
+    this._lookWeightHand = 0;
+    this._lookWeightTorso = 0;
+    this._lookRightWHand = 0;
+    this._lookLeftWHand = 0;
+    this._lookRightWTorso = 0;
+    this._lookLeftWTorso = 0;
+    this._lookUpWTorso = 0;
+    this._lookDownWTorso = 0;
+    this._lookBodyYSmooth = 0;
+    this._lookBodyXSmooth = 0;
+    this._viewBreathX = 0;
+    this._viewBreathY = 0;
+    this._viewSwayPhase = Math.random() * Math.PI * 2;
+    this._lookBoneSmooth = new Map();
     this._bindQuats = new Map();
     this._lookBaseQuats = new Map();
     this._gestureHeadQuat = null;
     this._gestureNeckQuat = null;
-    this._armRestPose = null;
-    this._armTypingPose = null;
     this._fullRestPose = null;
     this._fullTypingPose = null;
+    this._restPoseData = null;
+    this._typingPoseData = null;
+    this._currentBaseBaked = null;
+    this._lookBodyRightPose = null;
+    this._lookBodyLeftPose = null;
+    this._lookBodyRightBaked = null;
+    this._lookBodyLeftBaked = null;
+    this._lookBodyUpPose = null;
+    this._lookBodyDownPose = null;
+    this._lookBodyUpBaked = null;
+    this._lookBodyDownBaked = null;
+    this._lookBodyRefYaw = 0.1;
+    this._lastLookBodyWeight = 0;
+    this._lastLookBodyNeckQuat = null;
     this._poseLibrary = null;
     this._poseController = new PoseController();
     this._modelRoot = null;
@@ -196,6 +192,18 @@ export class SkeletalRig {
 
   get isActive() {
     return this.mode === 'skeleton' && !!this.skeleton;
+  }
+
+  setProfile(profile) {
+    this._profile = profile ?? getModelProfile('aqun_rig');
+  }
+
+  _lifeCfg() {
+    return this._profile?.life ?? DEFAULT_LIFE;
+  }
+
+  _lookCfg() {
+    return this._profile?.look ?? DEFAULT_LOOK;
   }
 
   setup(root) {
@@ -227,14 +235,12 @@ export class SkeletalRig {
       upper: findBone(this.skeleton, ARM_L.upper),
       forearm: findBone(this.skeleton, ARM_L.forearm),
       hand: findBone(this.skeleton, ARM_L.hand),
-      fingerChains: buildFingerChains(this.skeleton, FINGER_CHAINS_L),
     };
     this.arms.right = {
       shoulder: findBone(this.skeleton, ARM_R.shoulder),
       upper: findBone(this.skeleton, ARM_R.upper),
       forearm: findBone(this.skeleton, ARM_R.forearm),
       hand: findBone(this.skeleton, ARM_R.hand),
-      fingerChains: buildFingerChains(this.skeleton, FINGER_CHAINS_R),
     };
     this.legs.left = {
       thigh: findBone(this.skeleton, LEG_L.thigh),
@@ -249,14 +255,8 @@ export class SkeletalRig {
 
     this._captureBindPose();
     this._poseController.attach(root);
-    this._armRestPose = this._bakeArmPose(ARM_APOSE_L, ARM_APOSE_R);
-    this._armTypingPose = this._bakeArmPose(ARM_TYPING_L, ARM_TYPING_R);
 
     this.mode = 'skeleton';
-    console.info('[SkeletalRig] A-pose baked', {
-      lUpper: this.arms.left.upper?.name,
-      torsoBones: this._torsoBones.map((b) => b.name),
-    });
     return this;
   }
 
@@ -274,34 +274,91 @@ export class SkeletalRig {
 
   applyPoseLibrary(lib) {
     if (!validateLibrary(lib)) return this;
+    if (lib.modelId && this._profile?.id && lib.modelId !== this._profile.id) {
+      console.warn('[SkeletalRig] 姿势库 modelId 不匹配，已跳过', {
+        expected: this._profile.id,
+        got: lib.modelId,
+      });
+      return this;
+    }
     this._poseLibrary = cloneLibrary(lib);
+    const lookCfg = this._lookCfg();
+    const lookIntensity = lookCfg.bodyIntensity ?? 1;
     const restId = lib.assignments?.rest;
     const typingId = lib.assignments?.typing;
     if (restId && lib.poses?.[restId]?.bones) {
-      this._fullRestPose = this._bakeFullPose(lib.poses[restId].bones);
+      this._restPoseData = lib.poses[restId].bones;
+      this._fullRestPose = this._bakeFullPose(this._restPoseData);
     }
     if (typingId && lib.poses?.[typingId]?.bones) {
-      this._fullTypingPose = this._bakeFullPose(lib.poses[typingId].bones);
+      this._typingPoseData = lib.poses[typingId].bones;
+      this._fullTypingPose = this._bakeFullPose(this._typingPoseData);
+    }
+    const lookRightId = lib.assignments?.lookBodyRight ?? lib.assignments?.lookBody;
+    const lookLeftId = lib.assignments?.lookBodyLeft;
+    if (lookRightId && lib.poses?.[lookRightId]?.bones) {
+      this._lookBodyRightPose = lib.poses[lookRightId].bones;
+      this._lookBodyRightBaked = this._bakeFullPose(this._lookBodyRightPose, lookIntensity);
+      const spineKey = Object.keys(this._lookBodyRightPose).find((n) => /spine_01/i.test(n));
+      const spineY = Math.abs(this._lookBodyRightPose[spineKey]?.euler?.[1] ?? 0);
+      this._lookBodyRefYaw = spineY > 1e-4 ? spineY * lookIntensity : 0.1;
+    } else {
+      this._lookBodyRightPose = null;
+      this._lookBodyRightBaked = null;
+      this._lookBodyRefYaw = 0.1;
+    }
+    if (lookLeftId && lib.poses?.[lookLeftId]?.bones) {
+      this._lookBodyLeftPose = lib.poses[lookLeftId].bones;
+      this._lookBodyLeftBaked = this._bakeFullPose(this._lookBodyLeftPose, lookIntensity);
+    } else if (this._lookBodyRightPose) {
+      this._lookBodyLeftPose = mirrorPoseBones(this._lookBodyRightPose);
+      this._lookBodyLeftBaked = this._bakeFullPose(this._lookBodyLeftPose, 1);
+    } else {
+      this._lookBodyLeftPose = null;
+      this._lookBodyLeftBaked = null;
+    }
+    const lookUpId = lib.assignments?.lookBodyUp;
+    const lookDownId = lib.assignments?.lookBodyDown;
+    if (lookUpId && lib.poses?.[lookUpId]?.bones) {
+      this._lookBodyUpPose = lib.poses[lookUpId].bones;
+      this._lookBodyUpBaked = this._bakeFullPose(this._lookBodyUpPose, lookIntensity);
+    } else {
+      this._lookBodyUpPose = null;
+      this._lookBodyUpBaked = null;
+    }
+    if (lookDownId && lib.poses?.[lookDownId]?.bones) {
+      this._lookBodyDownPose = lib.poses[lookDownId].bones;
+      this._lookBodyDownBaked = this._bakeFullPose(this._lookBodyDownPose, lookIntensity);
+    } else {
+      this._lookBodyDownPose = null;
+      this._lookBodyDownBaked = null;
     }
     console.info('[SkeletalRig] pose library applied', {
       rest: restId,
       typing: typingId,
+      lookBodyRight: lookRightId,
+      lookBodyLeft: lookLeftId ?? '(mirrored)',
+      lookBodyUp: lookUpId,
+      lookBodyDown: lookDownId,
       bones: Object.keys(lib.poses?.[restId]?.bones ?? {}).length,
     });
+    this.applyRestPose();
     return this;
   }
 
-  _bakeFullPose(poseBones) {
+  _bakeFullPose(poseBones, intensity = 1) {
     if (!this._poseController.isReady) return null;
-    return bakePoseQuaternions(this._poseController, poseBones);
-  }
-
-  _applyFullPose(baked) {
-    if (!baked?.size) return;
-    for (const bone of this.skeleton.bones) {
-      const q = baked.get(bone.name);
-      if (q) bone.quaternion.copy(q);
+    if (intensity === 1) {
+      return bakePoseQuaternions(this._poseController, poseBones);
     }
+    const scaled = {};
+    for (const [name, entry] of Object.entries(poseBones ?? {})) {
+      scaled[name] = {
+        ...entry,
+        euler: scaleEuler(entry?.euler ?? [0, 0, 0], intensity),
+      };
+    }
+    return bakePoseQuaternions(this._poseController, scaled);
   }
 
   _captureBindPose() {
@@ -310,82 +367,6 @@ export class SkeletalRig {
     this.skeleton.bones.forEach((bone) => {
       this._bindQuats.set(bone.uuid, bone.quaternion.clone());
     });
-  }
-
-  _restoreBind(bone) {
-    if (!bone) return;
-    const q = this._bindQuats.get(bone.uuid);
-    if (q) bone.quaternion.copy(q);
-  }
-
-  _bakeArmPose(restL, restR) {
-    const bakeSide = (arm, rest, side) => {
-      const segments = {};
-      for (const key of ARM_SEGMENTS) {
-        this._restoreBind(arm[key]);
-        const e = rest[key];
-        applyEuler(arm[key], e[0], e[1], e[2]);
-        segments[key] = arm[key].quaternion.clone();
-      }
-
-      const fingerHang = [];
-      const hang = rest.fingerHang;
-      if (hang) {
-        collectFingerBones(this.skeleton, side).forEach((bone) => {
-          this._restoreBind(bone);
-          applyEuler(bone, hang[0], hang[1], hang[2]);
-          fingerHang.push({ bone, quat: bone.quaternion.clone() });
-        });
-      }
-
-      const fingers = [];
-      arm.fingerChains?.forEach((chain) => {
-        chain.bones.forEach((bone, i) => {
-          if (!bone) return;
-          const baked = fingerHang.find((f) => f.bone === bone);
-          if (baked) {
-            fingers.push(baked);
-            return;
-          }
-          this._restoreBind(bone);
-          const mirror = side === 'left' ? 1 : -1;
-          const curl = chain.curls[i] ?? 0.1;
-          applyEuler(bone, curl, 0.01 * mirror, 0.02 * mirror);
-          fingers.push({ bone, quat: bone.quaternion.clone() });
-        });
-      });
-
-      return { segments, fingerHang, fingers };
-    };
-    return {
-      left: bakeSide(this.arms.left, restL, 'left'),
-      right: bakeSide(this.arms.right, restR, 'right'),
-    };
-  }
-
-  _applyBakedArmPose(baked) {
-    if (!baked) return;
-    for (const side of ['left', 'right']) {
-      const arm = this.arms[side];
-      const data = baked[side];
-      for (const key of ARM_SEGMENTS) {
-        if (arm[key] && data.segments[key]) {
-          arm[key].quaternion.copy(data.segments[key]);
-        }
-      }
-      const applied = new Set();
-      data.fingerHang?.forEach(({ bone, quat }) => {
-        if (bone && quat) {
-          bone.quaternion.copy(quat);
-          applied.add(bone.uuid);
-        }
-      });
-      data.fingers.forEach(({ bone, quat }) => {
-        if (bone && quat && !applied.has(bone.uuid)) {
-          bone.quaternion.copy(quat);
-        }
-      });
-    }
   }
 
   preMixerUpdate() {
@@ -400,10 +381,21 @@ export class SkeletalRig {
     this.skeleton.update();
   }
 
-  /** 非手势时强制头/颈回到 bind，避免 idle 烘焙轨道残留 */
+  /** 非手势时头/颈回到姿势库基准（非 bind） */
   restoreHeadNeckBind() {
-    this._restoreBind(this.headBone);
-    this._restoreBind(this.neckBone);
+    const headQ = this._getBasePoseQuat(this.headBone?.name, this.headBone);
+    const neckQ = this._getBasePoseQuat(this.neckBone?.name, this.neckBone);
+    if (headQ && this.headBone) this.headBone.quaternion.copy(headQ);
+    if (neckQ && this.neckBone) this.neckBone.quaternion.copy(neckQ);
+  }
+
+  _getBasePoseQuat(boneName, bone) {
+    if (!boneName || !bone) return null;
+    const fromCurrent = resolveBindEntry(this._currentBaseBaked, boneName);
+    if (fromCurrent) return fromCurrent;
+    const fromRest = resolveBindEntry(this._fullRestPose, boneName);
+    if (fromRest) return fromRest;
+    return this._bindQuats.get(bone.uuid) ?? null;
   }
 
   /** nod/poke 播放后、applyLook 前：记录 mixer 输出的头/颈姿态 */
@@ -417,112 +409,355 @@ export class SkeletalRig {
     this._gestureNeckQuat = null;
   }
 
-  applyLook({ bodyX = 0, bodyY = 0, headX = 0, headY = 0, handAmount = 0.85 } = {}) {
-    if (!this.isActive || !this.headBone) return;
-    this._look = { bodyX, bodyY, headX, headY, handAmount };
+  hasLookBodyPose() {
+    return !!(
+      this._lookBodyRightBaked?.size
+      || this._lookBodyLeftBaked?.size
+      || this._lookBodyUpBaked?.size
+      || this._lookBodyDownBaked?.size
+    );
+  }
 
-    const relPitch = clampLook(headX - bodyX * 0.18, -0.28, 0.28);
-    const relYaw = clampLook(headY - bodyY * 0.18, -0.42, 0.42);
+  /** 0=中心原始姿势，1=满幅度 Blender 转向姿势（线性） */
+  getLookBodyLinearWeight(bodyY) {
+    const cfg = this._lookCfg();
+    return clampLook(Math.abs(bodyY) / cfg.bodyFullY, 0, 1);
+  }
 
-    const headBind = this._gestureHeadQuat ?? this._bindQuats.get(this.headBone.uuid);
-    applyLookOnBoneLocal(this.headBone, headBind, relPitch, relYaw);
+  getLookGroupBodyRotation(bodyX, bodyY) {
+    const cfg = this._lookCfg();
+    const w = Math.max(
+      this._lookRightWTorso,
+      this._lookLeftWTorso,
+      this._lookUpWTorso,
+      this._lookDownWTorso,
+    );
+    return {
+      x: this._lookBodyXSmooth * cfg.groupBodyX * w,
+      y: this._lookBodyYSmooth * cfg.groupBodyY * w,
+    };
+  }
 
-    // 颈骨保持 bind / 手势基准，不参与眼神旋转，避免双骨拧转
-    if (this.neckBone) {
-      const neckBase = this._gestureNeckQuat ?? this._bindQuats.get(this.neckBone.uuid);
-      if (neckBase) this.neckBone.quaternion.copy(neckBase);
+  _lookBoneNames() {
+    return new Set([
+      ...Object.keys(this._lookBodyRightPose ?? {}),
+      ...Object.keys(this._lookBodyLeftPose ?? {}),
+      ...Object.keys(this._lookBodyUpPose ?? {}),
+      ...Object.keys(this._lookBodyDownPose ?? {}),
+    ]);
+  }
+
+  _getLookRestQuat(boneName, bone) {
+    return this._getBasePoseQuat(boneName, bone);
+  }
+
+  _resolveBone(name) {
+    return this.skeleton?.bones.find((b) => b.name === name) ?? findBone(this.skeleton, [name]);
+  }
+
+  _computeLookTargetQuat(boneName, restQ, isLimb) {
+    const rightW = isLimb ? this._lookRightWHand : this._lookRightWTorso;
+    const leftW = isLimb ? this._lookLeftWHand : this._lookLeftWTorso;
+    const upW = isLimb ? 0 : this._lookUpWTorso;
+    const downW = isLimb ? 0 : this._lookDownWTorso;
+    if (rightW < 1e-4 && leftW < 1e-4 && upW < 1e-4 && downW < 1e-4) return restQ.clone();
+
+    let q = restQ.clone();
+    const rightTarget = resolveBindEntry(this._lookBodyRightBaked, boneName);
+    const leftTarget = resolveBindEntry(this._lookBodyLeftBaked, boneName);
+    const upTarget = resolveBindEntry(this._lookBodyUpBaked, boneName);
+    const downTarget = resolveBindEntry(this._lookBodyDownBaked, boneName);
+    if (rightW > 1e-4 && rightTarget) q.slerp(rightTarget, rightW);
+    if (leftW > 1e-4 && leftTarget) q.slerp(leftTarget, leftW);
+    if (upW > 1e-4 && upTarget) q.slerp(upTarget, upW);
+    if (downW > 1e-4 && downTarget) q.slerp(downTarget, downW);
+    return q;
+  }
+
+  _applyLookBodyPose(bodyY, bodyX = 0, handY = bodyY, handAmount = 0.85, delta = 0.016) {
+    const cfg = this._lookCfg();
+    const dt = Math.max(0.001, delta);
+    const targetRightTorso = clampLook(bodyY / cfg.bodyFullY, 0, 1);
+    const targetLeftTorso = clampLook(-bodyY / cfg.bodyFullY, 0, 1);
+    const targetUpTorso = clampLook(-bodyX / cfg.bodyFullX, 0, 1);
+    const targetDownTorso = clampLook(bodyX / cfg.bodyFullX, 0, 1);
+    const targetRightHand = clampLook(handY / cfg.bodyFullY, 0, 1) * handAmount;
+    const targetLeftHand = clampLook(-handY / cfg.bodyFullY, 0, 1) * handAmount;
+
+    this._lookRightWTorso = expSmoothing(this._lookRightWTorso, targetRightTorso, dt, cfg.torsoSmooth);
+    this._lookLeftWTorso = expSmoothing(this._lookLeftWTorso, targetLeftTorso, dt, cfg.torsoSmooth);
+    this._lookUpWTorso = expSmoothing(this._lookUpWTorso, targetUpTorso, dt, cfg.torsoSmooth);
+    this._lookDownWTorso = expSmoothing(this._lookDownWTorso, targetDownTorso, dt, cfg.torsoSmooth);
+    this._lookRightWHand = expSmoothing(this._lookRightWHand, targetRightHand, dt, cfg.handSmooth);
+    this._lookLeftWHand = expSmoothing(this._lookLeftWHand, targetLeftHand, dt, cfg.handSmooth);
+
+    this._lookBodyYSmooth = expSmoothing(this._lookBodyYSmooth, bodyY, dt, cfg.sideSmooth);
+    this._lookBodyXSmooth = expSmoothing(this._lookBodyXSmooth, bodyX, dt, cfg.sideSmooth);
+
+    this._lookWeightHand = Math.max(this._lookRightWHand, this._lookLeftWHand);
+    this._lookWeightTorso = Math.max(this._lookRightWTorso, this._lookLeftWTorso, this._lookUpWTorso, this._lookDownWTorso);
+    this._lastLookBodyWeight = Math.max(this._lookWeightHand, this._lookWeightTorso);
+    this._lastLookBodyNeckQuat = null;
+
+    const boneNames = this._lookBoneNames();
+    if (!boneNames.size) return;
+
+    for (const boneName of boneNames) {
+      const bone = this._resolveBone(boneName);
+      const restQ = this._getLookRestQuat(boneName, bone);
+      if (!bone || !restQ) continue;
+
+      const isLimb = isLookLimbBone(boneName);
+      const idealQ = this._computeLookTargetQuat(boneName, restQ, isLimb);
+      const boneSpeed = isLimb ? cfg.handBoneSmooth : cfg.torsoBoneSmooth;
+      const prevQ = this._lookBoneSmooth.get(boneName);
+
+      if (!prevQ) {
+        bone.quaternion.copy(idealQ);
+        this._lookBoneSmooth.set(boneName, idealQ.clone());
+      } else {
+        const t = 1 - Math.exp(-boneSpeed * dt);
+        const smoothQ = prevQ.clone().slerp(idealQ, t);
+        bone.quaternion.copy(smoothQ);
+        this._lookBoneSmooth.set(boneName, smoothQ.clone());
+      }
+
+      if (bone === this.neckBone) {
+        this._lastLookBodyNeckQuat = bone.quaternion.clone();
+      }
     }
   }
 
-  /** 待机微动：呼吸、手脚轻摆、重心转移（每帧从 bind pose 叠加） */
-  applyIdleMotion(delta) {
+  /** 视角转向时手臂轻微跟随（不动躯干） */
+  _applyLookArmBias(bodyX, bodyY, delta) {
+    const cfg = this._lookCfg();
+    const dt = Math.max(0.001, delta);
+    const lookMag = Math.hypot(bodyX, bodyY);
+    if (lookMag < 0.008) return;
+
+    this._viewBreathX = expSmoothing(this._viewBreathX, bodyX, dt, cfg.viewBreathSmooth);
+    this._viewBreathY = expSmoothing(this._viewBreathY, bodyY, dt, cfg.viewBreathSmooth);
+
+    const bias = this._viewBreathY * 0.004 + this._viewBreathX * 0.002;
+    applyOffsetFromCurrent(this.arms.left.shoulder, 0, -bias, lookMag * 0.0015);
+    applyOffsetFromCurrent(this.arms.right.shoulder, 0, bias, -lookMag * 0.0015);
+  }
+
+  /** 头部 / 颈部节律微动（在眼神之后叠加） */
+  applyHeadLifeRhythm(delta) {
+    this._applyHeadLifeRhythm(delta);
+  }
+
+  /** 头部 / 颈部节律微动（在眼神之后叠加；打字时频率与幅度均降低） */
+  _applyHeadLifeRhythm(delta) {
+    const life = this._lifeCfg();
+    const amp = life.amp;
+    const typing = this._animCtx?.typing && (this._animCtx?.typingEnergy ?? 0) > 0.05;
+    const e = typing ? Math.min(1, this._animCtx.typingEnergy) : 0;
+    this._headLifePhase += delta * (typing ? 0.85 + e * 0.55 : 0.7);
+    const t = this._headLifePhase;
+
+    const headAmp = typing ? amp.head * (0.45 + e * 0.25) : amp.head * 0.8;
+    const nod = Math.sin(t * (typing ? 1.6 : 1.35)) * headAmp;
+    const sway = Math.sin(t * (typing ? 0.95 : 0.85) + this._driftSeed) * headAmp * 0.4;
+    const tilt = Math.sin(t * (typing ? 1.15 : 0.65) + 1.2) * headAmp * 0.22;
+
+    if (this.headBone) {
+      applyOffsetFromCurrent(this.headBone, nod, sway, tilt);
+    }
+    if (this.neckBone) {
+      applyOffsetFromCurrent(this.neckBone, nod * 0.4, sway * 0.45, tilt * 0.25);
+    }
+  }
+
+  _applyArmLifeRhythm(side, slow, fast, amp, phaseOff) {
+    const life = this._lifeCfg();
+    const lifeAmp = life.amp;
+    const arm = this.arms[side];
+    if (!arm?.shoulder) return;
+    const mirror = side === 'left' ? 1 : -1;
+    const w = slow * Math.cos(phaseOff) + fast * 0.42 * Math.sin(phaseOff);
+    const w2 = fast * Math.cos(phaseOff * 0.65 + 0.3);
+
+    applyOffsetFromCurrent(arm.shoulder, w * amp * lifeAmp.shoulder / lifeAmp.forearm, w2 * amp * 0.22 * mirror, w * amp * 0.18 * mirror);
+    applyOffsetFromCurrent(arm.upper, w2 * amp * lifeAmp.upper / lifeAmp.forearm, w * amp * 0.14 * mirror, w2 * amp * 0.08 * mirror);
+    applyOffsetFromCurrent(arm.forearm, w * amp, w2 * amp * 0.28 * mirror, w * amp * 0.22 * mirror);
+    applyOffsetFromCurrent(arm.hand, w2 * amp * lifeAmp.hand / lifeAmp.forearm, w * amp * 0.1 * mirror, w2 * amp * 0.2 * mirror);
+  }
+
+  applyLook({
+    bodyX = 0, bodyY = 0, handX = bodyX, handY = bodyY,
+    headX = 0, headY = 0, handAmount = 0.85, delta = 0.016,
+    typing = false, typingEnergy = 0,
+  } = {}) {
+    if (!this.isActive || !this.headBone) return;
+    this._look = { bodyX, bodyY, handX, handY, headX, headY, handAmount };
+    this._animCtx = {
+      ...this._animCtx,
+      typing: !!typing,
+      typingEnergy: typingEnergy ?? 0,
+    };
+
+    const typingActive = typing && typingEnergy > 0.05;
+    const inputMag = Math.hypot(bodyX, bodyY, handX ?? bodyX, handY ?? bodyY);
+    /** 打字时仍允许眼神驱动；输入较小时保留适度跟随，有鼠标/全局视线时全幅度 */
+    const lookStrength = typingActive
+      ? Math.max(0.58, Math.min(1, inputMag * 2.8 + 0.58))
+      : 1;
+
+    this._applyLookBodyPose(
+      bodyY * lookStrength,
+      bodyX * lookStrength,
+      (handY ?? bodyY) * lookStrength,
+      handAmount * lookStrength,
+      delta,
+    );
+    this._applyLookArmBias(bodyX * lookStrength, bodyY * lookStrength, delta);
+
+    const relPitch = clampLook(headX - bodyX * 0.12, -0.28, 0.28);
+    const relYaw = clampLook(headY - bodyY * 0.12, -0.42, 0.42);
+
+    const headBase = this._gestureHeadQuat
+      ?? this._getBasePoseQuat(this.headBone.name, this.headBone);
+    applyLookOnBoneLocal(this.headBone, headBase, relPitch, relYaw);
+
+    // 颈骨保持姿势库 / 手势基准，不参与眼神旋转，避免双骨拧转
+    if (this.neckBone) {
+      if (this._lastLookBodyWeight > 0 && this._lastLookBodyNeckQuat) {
+        this.neckBone.quaternion.copy(this._lastLookBodyNeckQuat);
+      } else {
+        const neckBase = this._gestureNeckQuat
+          ?? this._getBasePoseQuat(this.neckBone.name, this.neckBone);
+        if (neckBase) this.neckBone.quaternion.copy(neckBase);
+      }
+    }
+  }
+
+  hasPoseLibrary() {
+    return !!(this._fullRestPose?.size);
+  }
+
+  /** 待机 / 打字：手臂节律微动（叠加在 Blender 姿势上，不动胸部） */
+  applyLifeRhythmEffect(delta, { typing = false, typingEnergy = 0 } = {}) {
     if (!this.isActive) return;
-    this._idlePhase += delta;
+    const typingActive = typing && typingEnergy > 0.05;
+    const e = typingActive ? Math.min(1, typingEnergy) : 0;
+    const rate = typingActive ? 1.6 + e * 1.2 : 1;
+    this._idlePhase += delta * rate;
+
+    const life = this._lifeCfg();
+    const period = life.period;
     const t = this._idlePhase;
-    const breath = Math.sin(t * 0.85) * 0.0035;
-    applyOffsetFromBind(this.chestBone, this._bindQuats, breath, 0, 0);
-    applyOffsetFromBind(this.spineBone, this._bindQuats, breath * 0.55, 0, 0);
+    const omega = (Math.PI * 2) / (typingActive ? period * 0.72 : period);
+    const slow = Math.sin(t * omega);
+    const fast = Math.sin(t * omega * 1.38 + this._driftSeed);
 
-    const swayL = Math.sin(t * 0.62 + 0.4) * 0.014;
-    const swayR = Math.sin(t * 0.58 + 2.0) * 0.014;
-    applyOffsetFromBind(this.arms.left.forearm, this._bindQuats, swayL * 0.35, swayL * 0.12, swayL * 0.5);
-    applyOffsetFromBind(this.arms.left.hand, this._bindQuats, swayL * 0.25, swayL * 0.18, swayL * 0.15);
-    applyOffsetFromBind(this.arms.right.forearm, this._bindQuats, swayR * 0.35, -swayR * 0.12, -swayR * 0.5);
-    applyOffsetFromBind(this.arms.right.hand, this._bindQuats, swayR * 0.25, -swayR * 0.18, -swayR * 0.15);
+    const armAmp = typingActive ? 0.006 + e * 0.009 : 0.007;
+    this._applyArmLifeRhythm('left', slow, fast, armAmp, 0);
+    this._applyArmLifeRhythm('right', slow, fast, armAmp, Math.PI * 0.62);
+  }
 
-    const fingerWave = Math.sin(t * 0.9 + 1.1) * 0.018;
+  /** @deprecated 别名，供旧调用路径使用 */
+  applyBreathEffect(delta, opts = {}) {
+    this.applyLifeRhythmEffect(delta, {
+      typing: opts.typing ?? this._animCtx?.typing,
+      typingEnergy: opts.typingEnergy ?? this._animCtx?.typingEnergy ?? 0,
+    });
+  }
+
+  /** 打字：指骨敲击（仅手指，避免与眼神/手臂跟随抢姿态） */
+  applyTypingEffect(delta, energy) {
+    if (!this.isActive || energy < 0.05) return;
+    this._typingPhase += delta * (2.5 + energy * 3.5);
+    const t = this._typingPhase;
+    const e = Math.min(1, energy);
+    const tap = 0.05 + e * 0.08;
+
     for (const side of ['left', 'right']) {
-      const mirror = side === 'left' ? 1 : -1;
+      const phaseOff = side === 'left' ? 0 : Math.PI * 0.55;
+
       collectFingerBones(this.skeleton, side).forEach((bone, i) => {
-        const w = 0.35 + (i % 3) * 0.08;
-        applyOffsetFromBind(bone, this._bindQuats, fingerWave * w, fingerWave * 0.06 * mirror, 0);
+        const chain = Math.floor(i / 3);
+        const speed = 2.0 + (chain % 5) * 0.25;
+        const press = Math.max(0, Math.sin(t * speed + phaseOff + i * 0.12)) * tap;
+        applyOffsetFromCurrent(bone, press * 0.6, 0, 0);
       });
     }
-
-    const weight = Math.sin(t * 0.48) * 0.005;
-    applyOffsetFromBind(this.legs.left.thigh, this._bindQuats, 0, 0, weight);
-    applyOffsetFromBind(this.legs.right.thigh, this._bindQuats, 0, 0, -weight);
-    applyOffsetFromBind(this.legs.left.foot, this._bindQuats, weight * 0.6, 0, 0);
-    applyOffsetFromBind(this.legs.right.foot, this._bindQuats, -weight * 0.6, 0, 0);
-    applyOffsetFromBind(this.rootBone, this._bindQuats, 0, Math.sin(t * 0.42) * 0.0025, Math.sin(t * 0.5) * 0.0035);
   }
 
   postMixerUpdate(_delta, _ctx = {}) {
-    /* idle 由 applyIdleMotion 驱动 */
+    /* 微动由 applyLifeRhythmEffect / applyTypingEffect 驱动 */
   }
 
-  /** 保留 API；绑骨模型不再叠加手臂/打字姿势 */
-  applyArmPoseLayer(_delta, _ctx = {}) {
-    /* no-op */
+  /** 应用 Blender 姿势库 idle；打字时不切换 typing 姿势，避免锁死手臂 */
+  applyArmPoseLayer(delta, { gesturing = false } = {}) {
+    if (!this.isActive) return;
+    this._animCtx = {
+      ...this._animCtx,
+      gesturing,
+    };
+
+    this._poseBlendTarget = 0;
+    this._poseBlendT = 0;
+    this._applyBlendedBasePose();
   }
 
-  _applyIdleBodyMotion(_typing, _energy) {
-    /* no-op */
-  }
-
-  _applyArmPose(typing, energy) {
-    const useTyping = typing && energy > 0.1;
-    const full = useTyping ? this._fullTypingPose : this._fullRestPose;
-    if (full?.size) {
-      this._applyFullPose(full);
+  _applyBlendedBasePose() {
+    if (!this._fullRestPose?.size) {
+      this._currentBaseBaked = null;
       return;
     }
-    const baked = useTyping ? this._armTypingPose : this._armRestPose;
-    this._applyBakedArmPose(baked);
+
+    this._applyBakedPose(this._fullRestPose);
+    this._currentBaseBaked = this._fullRestPose;
   }
 
-  _applyTypingMotion(delta, energy) {
-    this._typingPhase += delta * (6 + energy * 6);
-    const t = this._typingPhase;
-    const e = Math.max(0.12, energy);
-
-    this._applyTypingFingers(this.arms.left, 1, t, e);
-    this._applyTypingFingers(this.arms.right, -1, t + 1.2, e * 0.78);
+  _applyBakedPose(baked) {
+    for (const bone of this.skeleton.bones) {
+      const q = resolveBindEntry(baked, bone.name);
+      if (q) bone.quaternion.copy(q);
+    }
   }
 
-  _applyTypingFingers(arm, mirror, t, energy) {
-    if (!arm?.fingerChains?.length) return;
-    const tap = 0.16 + energy * 0.24;
-
-    arm.fingerChains.forEach((chain, chainIdx) => {
-      const isThumb = chainIdx === 0;
-      chain.bones.forEach((bone, segIdx) => {
-        if (!bone) return;
-        const speed = 2.6 + chainIdx * 0.28 + segIdx * 0.1;
-        const phase = t * speed + chainIdx * 0.45 + segIdx * 0.2;
-        const press = Math.max(0, Math.sin(phase)) * tap;
-        const thumbScale = isThumb ? 0.4 : 1;
-        applyEuler(bone, press * thumbScale * (0.45 + segIdx * 0.18), 0, 0);
-      });
-    });
-
-    const wrist = Math.sin(t * 2.2) * (0.008 + energy * 0.01);
-    applyEuler(arm.hand, wrist, 0, wrist * 0.3 * mirror);
+  /** 加载姿势库后立即应用待机，避免首帧 bind/idle 不一致 */
+  applyRestPose() {
+    if (!this.isActive || !this._fullRestPose?.size) return this;
+    this._applyBlendedBasePose();
+    this.finalizeUpdate();
+    return this;
   }
 
   resetPose() {
     this._look = { bodyX: 0, bodyY: 0, headX: 0, headY: 0, handAmount: 0.85 };
     this._typingPhase = 0;
+    this._poseBlendT = 0;
+    this._poseBlendTarget = 0;
+    this._lookWeightHand = 0;
+    this._lookWeightTorso = 0;
+    this._lookRightWHand = 0;
+    this._lookLeftWHand = 0;
+    this._lookRightWTorso = 0;
+    this._lookLeftWTorso = 0;
+    this._lookUpWTorso = 0;
+    this._lookDownWTorso = 0;
+    this._lookBodyYSmooth = 0;
+    this._lookBodyXSmooth = 0;
+    this._viewBreathX = 0;
+    this._viewBreathY = 0;
+    this._lookBoneSmooth.clear();
+  }
+
+  resetSkeletonToBind() {
+    if (!this.isActive) return this;
+    this.resetPose();
+    this.clearGestureHeadSnapshot();
+    if (this._fullRestPose?.size) {
+      this.applyRestPose();
+      return this;
+    }
+    this.skeleton.pose();
+    this.finalizeUpdate();
+    return this;
   }
 
   dispose() {
@@ -531,10 +766,19 @@ export class SkeletalRig {
     this._lookBaseQuats.clear();
     this._gestureHeadQuat = null;
     this._gestureNeckQuat = null;
-    this._armRestPose = null;
-    this._armTypingPose = null;
     this._fullRestPose = null;
     this._fullTypingPose = null;
+    this._restPoseData = null;
+    this._typingPoseData = null;
+    this._currentBaseBaked = null;
+    this._lookBodyRightPose = null;
+    this._lookBodyLeftPose = null;
+    this._lookBodyRightBaked = null;
+    this._lookBodyLeftBaked = null;
+    this._lookBodyUpPose = null;
+    this._lookBodyDownPose = null;
+    this._lookBodyUpBaked = null;
+    this._lookBodyDownBaked = null;
     this._poseLibrary = null;
     this._poseController?.dispose?.();
     this.mode = 'none';

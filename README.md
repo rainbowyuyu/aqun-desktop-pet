@@ -1,4 +1,4 @@
-# 阿群模型 · aqun-desktop-pet
+# 桌面模型 · aqun-desktop-pet
 
 Windows 透明悬浮 3D 桌面宠物：绑骨模型、眼神跟随、键盘反馈、控制中心、日历与姿势编辑器。
 

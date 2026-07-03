@@ -30,13 +30,18 @@ import { DEFAULT_WEATHER_CITY, DEFAULT_WEATHER_LOCATION } from './locationDefaul
 
 import { resolveKeyId } from './keyboardLayout.js';
 
-import { remindersForDate } from './calendarUtils.js';
+import { remindersForDate, getDayDetails, upcomingRemindersForDate } from './calendarUtils.js';
+import { BubbleContextTracker } from './BubbleContext.js';
+import { DEFAULT_ACTION_SHORTCUTS } from './actionShortcuts.js';
+import { findUpcomingReminder } from './bubbleCopy.js';
 
 import { FirstRunTutorial } from './FirstRunTutorial.js';
 
 import { BirthdayIntro } from './BirthdayIntro.js';
 
 import { shouldPlayBirthdayIntro } from './birthdayConfig.js';
+
+import { clearLocalPetData } from './clearLocalPetData.js';
 
 
 
@@ -54,14 +59,18 @@ export class PetApp {
 
     this.bubble = new BubbleUI(document.getElementById('bubble'));
 
+    this.bubbleContext = new BubbleContextTracker();
+
     this.chatterFeed = new ChatterFeed();
     this.weatherFeed = new WeatherFeed();
     this.chatterComposer = new ChatterComposer({
       chatterFeed: this.chatterFeed,
       weatherFeed: this.weatherFeed,
       getSettings: () => this.settings,
+      getBubbleContext: () => this._getBubbleContext(),
     });
     this.bubble.setChatterFeed(this.chatterComposer);
+    this.bubble.setBubbleContext(() => this._getBubbleContext());
 
     this.inputOverlay = new InputOverlay(document.getElementById('key-viz'));
 
@@ -107,11 +116,19 @@ export class PetApp {
 
       networkChatter: true,
 
+      aiEnabled: true,
+
+      actionShortcutsEnabled: true,
+
+      actionShortcuts: { ...DEFAULT_ACTION_SHORTCUTS },
+
       settingsOpen: false,
 
       tutorialSeen: false,
 
       birthdayIntroYear: null,
+
+      welcomeExperiencePending: false,
 
       weatherCity: DEFAULT_WEATHER_CITY,
 
@@ -211,6 +228,13 @@ export class PetApp {
       this._applySettings(saved, { persist: false });
     }
 
+    const welcomePending = !!this.settings.welcomeExperiencePending;
+    if (welcomePending) {
+      clearLocalPetData();
+      this.settings.welcomeExperiencePending = false;
+      window.aqunPet?.updateSettings?.({ welcomeExperiencePending: false }).catch(() => {});
+    }
+
     this.inputOverlay.setVisible(this.settings.showKeyLabels);
 
     this.inputOverlay.setOpacity(this.settings.keyboardOpacity ?? 0.88);
@@ -228,7 +252,7 @@ export class PetApp {
 
 
 
-    const playBirthdayIntro = shouldPlayBirthdayIntro(
+    const playBirthdayIntro = welcomePending || shouldPlayBirthdayIntro(
       new Date(),
       this.settings.birthdayIntroYear ?? null,
     );
@@ -239,6 +263,7 @@ export class PetApp {
         root: this.appRoot,
         canvas: this.canvas,
         fx: this.birthdayFx,
+        modelGroup: this.scene.modelGroup,
       });
       birthdayIntro.mount();
       gsap.set(this.canvas, { opacity: 0 });
@@ -290,7 +315,10 @@ export class PetApp {
       await birthdayIntro.play();
       const year = new Date().getFullYear();
       this.settings.birthdayIntroYear = year;
-      window.aqunPet?.updateSettings?.({ birthdayIntroYear: year }).catch(() => {});
+      window.aqunPet?.updateSettings?.({
+        birthdayIntroYear: year,
+        welcomeExperiencePending: false,
+      }).catch(() => {});
       birthdayIntro.dispose();
       birthdayIntro = null;
       this.birthdayFx.flashRainbowRing();
@@ -353,7 +381,10 @@ export class PetApp {
 
       onStateChange: () => {},
 
-      onMoodChange: (mood) => this.scene.setLightingMood(mood),
+      onMoodChange: (mood) => {
+        const effective = mood === 'typing' && this.scene.usesSkeleton ? 'idle' : mood;
+        this.scene.setLightingMood(effective);
+      },
 
       getIdleChatter: () => this.settings.idleChatter,
 
@@ -385,12 +416,11 @@ export class PetApp {
 
     if (!playBirthdayIntro) {
       this.birthdaySecrets.maybeGreetToday();
-    } else {
-      this.fsm.wave();
-      if (this.settings.showBubble) {
-        this.bubble.showText('生日快乐，阿群！');
-      }
+    } else if (this.settings.showBubble) {
+      this.bubble.showText('生日快乐，阿群！');
     }
+
+    this.bubble.hideImmediate();
 
 
 
@@ -472,6 +502,8 @@ export class PetApp {
 
       onLook: ({ nx, ny, buttons }) => {
 
+        this.bubbleContext?.touch();
+
         if (!this.settings.showKeyLabels) return;
 
         this.inputOverlay.updateMouse({ nx, ny, buttons });
@@ -492,7 +524,11 @@ export class PetApp {
 
     this._bindPreviewAnim();
 
+    this._bindActionShortcuts();
+
     this._bindPoseLibrary();
+
+    this._bindAiSuggestion();
 
     this._maybeStartTutorial();
 
@@ -504,7 +540,7 @@ export class PetApp {
 
     await this._refreshTodayReminders();
 
-    this._reminderPoll = setInterval(() => this._refreshTodayReminders(), 60000);
+    this._reminderPoll = setInterval(() => this._refreshTodayReminders(), 30000);
 
     this._animate();
 
@@ -520,11 +556,17 @@ export class PetApp {
 
     const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-    const items = remindersForDate(reminders, todayKey);
+    const items = upcomingRemindersForDate(reminders, todayKey, today, {
+      gracePastMinutes: 3,
+      leadMinutes: null,
+    });
+    const dayInfo = getDayDetails(todayKey);
+
+    this.bubbleContext?.setTodayReminders(items, dayInfo);
 
     if (items.length) {
 
-      this.reminderHud.showDayReminders(items, { label: '今日提醒' });
+      this.reminderHud.showDayReminders(items, { dayKey: todayKey, dayInfo });
 
     } else {
 
@@ -544,15 +586,14 @@ export class PetApp {
 
       if (this.settings.showBubble) {
 
-        this.bubble.showText(reminder.note ? `${reminder.title}：${reminder.note}` : reminder.title);
+        const text = reminder.note ? `${reminder.title}：${reminder.note}` : reminder.title;
+        this.bubble.showReminder(text);
 
       }
 
       this.reminderHud.pulseReminder(reminder);
 
       this.fsm?.wave();
-
-      this._refreshTodayReminders();
 
     });
 
@@ -771,12 +812,39 @@ export class PetApp {
     });
   }
 
+  _bindActionShortcuts() {
+    if (!window.aqunPet?.onPetActionShortcut) return;
+    this._unsubActionShortcut = window.aqunPet.onPetActionShortcut((actionId) => {
+      if (this.settings.actionShortcutsEnabled === false) return;
+      this.interaction?.cancelAll?.();
+      this.fsm?.shortcutAction?.(actionId);
+    });
+  }
+
   _bindPoseLibrary() {
     if (!window.aqunPet?.onPoseLibraryApplied) return;
     this._unsubPoseLibrary = window.aqunPet.onPoseLibraryApplied(({ modelId, library }) => {
       const active = this.settings.petModelId ?? 'aqun_rig';
       if (modelId && modelId !== active) return;
       this.scene.skeletalRig?.applyPoseLibrary?.(library);
+      this.scene.modelLoader?.setIdleClipWeight?.(0);
+    });
+  }
+
+  _bindAiSuggestion() {
+    if (!window.aqunPet?.onAiSuggestion) return;
+    this._unsubAi = window.aqunPet.onAiSuggestion((payload) => {
+      if (!this.settings.aiEnabled) return;
+      if (!this.settings.showBubble) return;
+
+      if (payload?.error === 'invalid_key') return;
+
+      const text = String(payload?.text || '').trim();
+      if (!text) return;
+
+      this.bubbleContext?.touch();
+      this.bubble.showText(text, { duration: 6.5 });
+      this.fsm?.shortcutAction?.('nod');
     });
   }
 
@@ -803,9 +871,10 @@ export class PetApp {
       root: this.appRoot,
       canvas: this.canvas,
       fx: this.birthdayFx,
+      modelGroup: this.scene.modelGroup,
     });
     intro.mount();
-    gsap.set(this.canvas, { opacity: 0, scale: 0.08, y: 48, transformOrigin: '50% 88%' });
+    gsap.set(this.canvas, { opacity: 0 });
 
     try {
       await intro.play();
@@ -816,6 +885,7 @@ export class PetApp {
       }
     } finally {
       intro.dispose();
+      this.appRoot?.querySelector('#birthday-intro')?.remove();
       gsap.set(this.canvas, { clearProps: 'opacity,transform,filter' });
       this.scene?.onResize();
       this.scene?.render();
@@ -848,6 +918,7 @@ export class PetApp {
     apply();
     requestAnimationFrame(() => {
       apply();
+      this.inputOverlay?.refit?.();
       requestAnimationFrame(apply);
     });
   }
@@ -859,6 +930,7 @@ export class PetApp {
 
     const gen = ++this._modelSwitchGen;
     this.settings.petModelId = modelId;
+    this.animations?.resetLook?.();
 
     this.loadingEl.style.display = 'flex';
     gsap.set(this.loadingEl, { opacity: 1 });
@@ -887,6 +959,9 @@ export class PetApp {
       });
       this.fsm.modelLoader = this.scene.modelLoader;
       this.animations?.resetLook?.();
+      if (!this.scene.usesSkeleton) {
+        this.animations?.startIdleBreath?.();
+      }
       this.scene.setHologramMode(false);
 
       gsap.to(this.loadingEl, {
@@ -922,6 +997,22 @@ export class PetApp {
 
 
 
+  _getBubbleContext() {
+    const snap = this.bubbleContext.snapshot();
+    return {
+      now: snap.now,
+      sessionMinutes: snap.sessionMinutes,
+      activeMinutes: snap.activeMinutes,
+      dayType: snap.dayType,
+      dayMarks: snap.dayMarks,
+      upcomingReminder: findUpcomingReminder(snap.todayReminders, snap.now),
+      todayReminderCount: snap.todayReminderCount,
+      hasClassToday: snap.hasClassToday,
+    };
+  }
+
+
+
   _onKeyPayload(payload) {
 
     const id = resolveKeyId(payload.name || String(payload.code));
@@ -935,6 +1026,8 @@ export class PetApp {
       if (this._pressedKeys.has(id)) return;
 
       this._pressedKeys.add(id);
+
+      this.bubbleContext?.touch();
 
       this.fsm?.handleKeyEvent(payload);
 
@@ -1035,14 +1128,11 @@ export class PetApp {
     if (!this.scene.shouldRender()) return;
 
     const pose = this.animations?.getHeadApplyPose?.() ?? null;
+    const typingEnergy = this.animations?._typingEnergy ?? 0;
+    const typing = typingEnergy > 0.05;
     if (this.animations?.hasSkeletonLook?.()) {
       this.scene.setSkeletalLookApply(pose);
-      this.scene.setSkeletalAnimContext({
-        typing: this.fsm?.state === 'typing',
-        typingEnergy: this.fsm?.state === 'typing'
-          ? Math.min(1, (this.fsm?.typingSpeed ?? 0) / 2.2)
-          : 0,
-      });
+      this.scene.setSkeletalAnimContext({ typing, typingEnergy });
     } else {
       this.scene.setHeadLookApply(pose);
     }
@@ -1079,13 +1169,19 @@ export class PetApp {
 
     this._unsubPreviewAnim?.();
 
+    this._unsubActionShortcut?.();
+
     this._unsubPoseLibrary?.();
+
+    this._unsubAi?.();
 
     this._unsubInteractionReset?.();
 
     this.reminderHud?.dispose();
 
     this.interaction?.dispose();
+
+    this.inputOverlay?.dispose?.();
 
     this.birthdayFx?.dispose();
 

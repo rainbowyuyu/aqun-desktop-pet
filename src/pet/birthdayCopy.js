@@ -3,9 +3,9 @@ import { APP_VERSION_LABEL } from './releaseNotes.js';
 
 /** 界面文案 */
 export const UI_COPY = {
-  appTitle: '阿群模型',
+  appTitle: '桌面模型',
   loading: '正在加载模型…',
-  navTitle: '阿群',
+  navTitle: '桌面模型',
   aboutTitle: '关于',
   aboutSub: '模型说明',
   aboutTag: '7 月 4 日 · 桌面小伙伴',

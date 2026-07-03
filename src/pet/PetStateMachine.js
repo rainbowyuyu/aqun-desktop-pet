@@ -21,9 +21,15 @@ const STATE_PRIORITY = {
 
   nod: 55,
 
+  headTurnLeft: 48,
+  headTurnRight: 48,
   wave: 50,
 
   spin: 50,
+
+  shake: 48,
+
+  bounce: 46,
 
   lean: 40,
 
@@ -92,9 +98,29 @@ export class PetStateMachine {
   }
 
   _playClipOr(name, fallback) {
-    const action = this.modelLoader?.playClipOnce?.(name);
-    if (action) return action;
-    return fallback?.() ?? null;
+    const result = this.modelLoader?.playClipOnce?.(name);
+    if (result?.queued) return 'queued';
+    if (result) return 'played';
+    if (this.modelLoader?.isGestureBlocking?.()) return 'blocked';
+    if (this.animations?.isBodyGesturePlaying?.()) {
+      return this.animations.queueBodyGesture(name, fallback) ? 'queued' : 'blocked';
+    }
+    fallback?.();
+    return 'played';
+  }
+
+  _tryPlayGesture(name, fallback, onPlay) {
+    if (this.modelLoader?.isGestureBlocking?.()) {
+      this.modelLoader.playClipOnce(name);
+      return false;
+    }
+    if (this.animations?.isBodyGesturePlaying?.()) {
+      this.animations.queueBodyGesture(name, fallback);
+      return false;
+    }
+    const status = this._playClipOr(name, fallback);
+    if (status === 'played') onPlay?.();
+    return status === 'played';
   }
 
   start() {
@@ -143,13 +169,11 @@ export class PetStateMachine {
 
     this._lastReactionAt = now;
 
-
+    this.animations.setTypingEnergy(Math.min(1, this.typingSpeed / 2.2));
 
     this._applyReaction(reaction, name);
 
     this._scheduleIdleCheck();
-
-    this.animations.setTypingEnergy(Math.min(1, this.typingSpeed / 2.2));
 
     this.onMoodChange?.('typing');
 
@@ -171,7 +195,7 @@ export class PetStateMachine {
 
         this.animations.playJump();
 
-        this.onBubble?.('space');
+        this.onBubble?.('jump');
 
         break;
 
@@ -179,8 +203,8 @@ export class PetStateMachine {
 
         this._setState('typing');
 
-        if (!this._playClipOr('sway', () => this.animations.playSpaceSway(reaction.intensity ?? 0.75))) {
-          /* gsap fallback already invoked */
+        if (!this._tryPlayGesture('sway', () => this.animations.playSpaceSway(reaction.intensity ?? 0.75))) {
+          break;
         }
 
         this.onBubble?.('space');
@@ -189,11 +213,10 @@ export class PetStateMachine {
 
       case 'nod':
 
-        this._setState('nod');
-
-        this.animations.playKeyStrike('center', 0.7);
-
-        this._playClipOr('nod', () => this.animations.playNod());
+        if (!this._tryPlayGesture('nod', () => this.animations.playNod(), () => {
+          this._setState('nod');
+          this.animations.playKeyStrike('center', 0.7);
+        })) break;
 
         this.onBubble?.(reaction.bubble);
 
@@ -255,29 +278,17 @@ export class PetStateMachine {
 
         this._setState('typing');
 
-        this.animations.playKeyStrike(side, strike);
-
-        this.animations.playTyping(Math.min(2, 0.45 + this.typingSpeed * 0.35));
-
         break;
 
       case 'generic':
 
         this._setState('typing');
 
-        this.animations.playKeyStrike(side, strike * 0.85);
-
-        this.animations.playGeneric(0.45 + Math.min(1, this.typingSpeed * 0.25));
-
         break;
 
       default:
 
         this._setState('typing');
-
-        this.animations.playKeyStrike(side, strike * 0.7);
-
-        this.animations.playGeneric(0.35);
 
         break;
 
@@ -291,13 +302,10 @@ export class PetStateMachine {
 
     if (!this._canOverride('poke')) return;
 
-    this.onPoke?.();
-
-    this._setState('poke');
-
-    if (!this._playClipOr('poke', () => this.animations.playPoke())) {
-      /* gsap fallback already invoked */
-    }
+    if (!this._tryPlayGesture('poke', () => this.animations.playPoke(), () => {
+      this.onPoke?.();
+      this._setState('poke');
+    })) return;
 
     this.onBubble?.('poke');
 
@@ -311,9 +319,9 @@ export class PetStateMachine {
 
     if (!this._canOverride('wave')) return;
 
-    this._setState('wave');
-
-    this._playClipOr('wave', () => this.animations.playWave());
+    if (!this._tryPlayGesture('wave', () => this.animations.playWave(), () => {
+      this._setState('wave');
+    })) return;
 
     this.onBubble?.('wave');
 
@@ -331,7 +339,107 @@ export class PetStateMachine {
 
     this.animations.playSpin();
 
+    this.onBubble?.('spin');
+
     this._scheduleIdleCheck();
+
+  }
+
+
+
+  shortcutAction(actionId) {
+
+    switch (actionId) {
+
+      case 'spin':
+
+        this.spin();
+
+        return;
+
+      case 'shake':
+
+        if (!this._canOverride('shake')) return;
+
+        this._setState('shake');
+
+        this.animations.playShake();
+
+        this.onBubble?.('shake');
+
+        this._scheduleIdleCheck();
+
+        return;
+
+      case 'wave':
+
+        this.wave();
+
+        return;
+
+      case 'headTurnLeft':
+
+        if (!this._canOverride('headTurnLeft')) return;
+
+        this._setState('headTurnLeft');
+
+        this.animations.playHeadTurnLeft();
+
+        this.onBubble?.('headTurnLeft');
+
+        this._scheduleIdleCheck();
+
+        return;
+
+      case 'headTurnRight':
+
+        if (!this._canOverride('headTurnRight')) return;
+
+        this._setState('headTurnRight');
+
+        this.animations.playHeadTurnRight();
+
+        this.onBubble?.('headTurnRight');
+
+        this._scheduleIdleCheck();
+
+        return;
+
+      case 'nod':
+
+        if (!this._canOverride('nod')) return;
+
+        if (!this._tryPlayGesture('nod', () => this.animations.playNod(), () => {
+
+          this._setState('nod');
+
+        })) return;
+
+        this.onBubble?.('enter');
+
+        this._scheduleIdleCheck();
+
+        return;
+
+      case 'bounce':
+
+        if (!this._canOverride('bounce')) return;
+
+        this._setState('bounce');
+
+        this.animations.playJump();
+
+        this.onBubble?.('jump');
+
+        this._scheduleIdleCheck();
+
+        return;
+
+      default:
+
+        break;
+
+    }
 
   }
 
@@ -457,7 +565,9 @@ export class PetStateMachine {
 
     } else if (roll < 0.38) {
 
-      this._playClipOr('wave', () => this.animations.playWave());
+      this._tryPlayGesture('wave', () => this.animations.playWave(), () => {
+        this._setState('wave');
+      });
 
     }
 

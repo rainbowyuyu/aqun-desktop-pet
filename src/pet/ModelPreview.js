@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { ModelLoader } from '../scene/ModelLoader.js';
+import { getModelProfile } from '../scene/modelProfiles.js';
 
 /** 设置面板内模型缩略预览 */
 export class ModelPreview {
-  constructor(canvas, modelUrl) {
+  constructor(canvas, modelUrl, modelId = 'aqun_rig') {
     this.canvas = canvas;
     this.modelUrl = modelUrl;
+    this.modelId = modelId;
     this._running = false;
     this._raf = null;
     this._root = null;
@@ -40,6 +42,7 @@ export class ModelPreview {
   async _load() {
     try {
       const loader = new ModelLoader();
+      loader.setProfile(getModelProfile(this.modelId));
       const result = await loader.loadWithRetry(this.modelUrl, 2);
       if (!result?.model) return;
 

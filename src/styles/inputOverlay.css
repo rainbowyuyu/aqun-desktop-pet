@@ -24,6 +24,8 @@
   --io-mouse-bottom: rgba(240, 248, 252, 0.88);
   --io-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --io-ease-soft: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --io-design-w: 336px;
+  --io-fit-scale: 1;
 
   position: absolute;
   inset: 0;
@@ -36,13 +38,34 @@
 .io-stage {
   position: absolute;
   left: 50%;
-  bottom: clamp(10px, 3.2%, 20px);
-  width: min(92vw, 432px);
-  transform: translateX(-50%);
+  bottom: clamp(10px, 2.8%, 18px);
+  width: var(--io-design-w);
+  max-width: calc(100% - 20px);
+  transform: translateX(-50%) scale(var(--io-fit-scale));
   transform-style: preserve-3d;
   transform-origin: 50% 100%;
-  filter: drop-shadow(0 16px 36px rgba(58, 88, 72, 0.1));
+  filter: drop-shadow(0 10px 22px rgba(58, 88, 72, 0.08));
   transition: opacity 0.28s var(--io-ease);
+  overflow: visible;
+}
+
+.io-tilt,
+.io-orbit,
+.io-panel {
+  overflow: visible;
+}
+
+#key-viz.io-narrow .io-panel {
+  gap: 8px;
+}
+
+#key-viz.io-narrow .io-mouse-wrap {
+  padding: 6px;
+}
+
+#key-viz.io-narrow .io-mouse-svg {
+  width: 40px;
+  height: 58px;
 }
 
 .io-tilt {
@@ -63,7 +86,7 @@
   flex-direction: row;
   align-items: flex-end;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   transform-style: preserve-3d;
 }
@@ -71,10 +94,12 @@
 /* ── 键盘外壳 ── */
 .io-keyboard-shell {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
   padding: 1px;
-  border-radius: 15px;
+  border-radius: 14px;
+  overflow: visible;
   background: linear-gradient(
     135deg,
     rgba(232, 152, 168, 0.42),
@@ -84,7 +109,7 @@
   box-shadow:
     0 14px 32px rgba(152, 192, 232, 0.12),
     0 4px 12px rgba(232, 152, 168, 0.08);
-  transform: translateZ(14px) rotateX(5deg);
+  transform: translateZ(14px) rotateX(3deg);
   transform-style: preserve-3d;
 }
 
@@ -121,7 +146,9 @@
 
 .io-keyboard {
   position: relative;
-  padding: 14px 12px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 10px 8px;
   border-radius: 14px;
   background: linear-gradient(
     165deg,
@@ -139,8 +166,10 @@
 
 .io-kb-row {
   display: flex;
-  gap: 3px;
-  margin-bottom: 3px;
+  gap: 2px;
+  margin-bottom: 2px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .io-kb-row:last-child {
@@ -160,9 +189,13 @@
 .io-key {
   flex: 1;
   min-width: 0;
-  height: 20px;
+  height: 16px;
   perspective: 120px;
   transform-style: preserve-3d;
+}
+
+.io-kb-row--fn .io-key {
+  height: 13px;
 }
 
 .io-key-face {
@@ -304,6 +337,7 @@
 .io-mouse-shell {
   position: relative;
   flex-shrink: 0;
+  flex-grow: 0;
   padding: 1px;
   border-radius: 18px;
   background: linear-gradient(
@@ -454,7 +488,11 @@
 
 @media (max-height: 420px) {
   .io-key {
-    height: 16px;
+    height: 14px;
+  }
+
+  .io-kb-row--fn .io-key {
+    height: 11px;
   }
 
   .io-key-face {
@@ -465,9 +503,5 @@
   .io-mouse-svg {
     width: 38px;
     height: 54px;
-  }
-
-  .io-stage {
-    width: min(94vw, 380px);
   }
 }

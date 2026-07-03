@@ -1,7 +1,7 @@
 import { getAppearanceModels } from './modelRegistry.js';
 import { ModelPreview } from './ModelPreview.js';
 
-/** 三模型预览与切换 */
+/** 四模型预览与切换 */
 export class ModelPicker {
   constructor({ container, getActiveId, getModelUrl, onSelect }) {
     this.container = container;
@@ -87,7 +87,7 @@ export class ModelPicker {
       let url = this.getModelUrl(id);
       if (url && typeof url.then === 'function') url = await url;
       if (!url) continue;
-      this._previews.set(id, new ModelPreview(canvas, url));
+      this._previews.set(id, new ModelPreview(canvas, url, id));
     }
   }
 

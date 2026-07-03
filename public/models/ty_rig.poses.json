@@ -1,764 +1,1482 @@
 {
   "version": 1,
-  "modelId": "aqun_rig",
+  "modelId": "ty_rig",
   "eulerOrder": "XYZ",
   "poses": {
     "bind": {
+      "id": "bind",
       "name": "Bind 绑定",
       "bones": {}
     },
     "idle": {
+      "id": "idle",
       "name": "待机 A-pose",
       "bones": {
-        "shoulderl": {
+        "shoulder.l": {
           "euler": [
-            0.35,
-            0.04,
-            -1.15
+            0.308,
+            0.0352,
+            -1.012
           ],
           "locked": false
         },
-        "c_arm_stretchl": {
+        "shoulder.r": {
           "euler": [
-            1.85,
-            0.03,
-            -0.15
+            0.308,
+            0.0352,
+            -1.012
           ],
           "locked": false
         },
-        "c_forearm_stretchl": {
+        "ring1.r": {
           "euler": [
-            0.82,
-            0.01,
-            0.08
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "handl": {
+        "c_index1_base.r": {
           "euler": [
-            0.35,
-            0.01,
-            0.03
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_pinky1_basel": {
+        "c_pinky2.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "pinky1l": {
+        "c_pinky1_base.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_pinky2l": {
+        "c_pinky1_base.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_pinky3l": {
+        "c_index2.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_ring1_basel": {
+        "c_ring2.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "ring1l": {
+        "pinky1.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_ring2l": {
+        "c_middle1_base.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_ring3l": {
+        "c_ring3.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_middle1_basel": {
+        "c_thumb2.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "middle1l": {
+        "c_index3.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_middle2l": {
+        "c_middle3.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_middle3l": {
+        "c_forearm_stretch.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            0.7216,
+            0.0088,
+            0.0704
           ],
           "locked": false
         },
-        "c_index1_basel": {
+        "c_index3.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "index1l": {
+        "c_thumb2.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_index2l": {
+        "thumb1.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_index3l": {
+        "middle1.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "thumb1l": {
+        "c_middle2.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_thumb2l": {
+        "index1.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_thumb3l": {
+        "c_middle3.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "shoulderr": {
+        "hand.l": {
           "euler": [
-            0.35,
-            0.04,
-            -1.15
+            0.308,
+            0.0088,
+            0.0264
           ],
           "locked": false
         },
-        "c_arm_stretchr": {
+        "pinky1.l": {
           "euler": [
-            1.85,
-            0.03,
-            -0.15
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_forearm_stretchr": {
+        "c_pinky3.r": {
           "euler": [
-            0.82,
-            0.01,
-            0.08
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "handr": {
+        "c_ring1_base.l": {
           "euler": [
-            0.35,
-            0.01,
-            0.03
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_pinky1_baser": {
+        "c_thumb3.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "pinky1r": {
+        "c_index1_base.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_pinky2r": {
+        "c_arm_stretch.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.628,
+            0.0264,
+            -0.132
           ],
           "locked": false
         },
-        "c_pinky3r": {
+        "c_middle1_base.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_ring1_baser": {
+        "hand.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            0.308,
+            0.0088,
+            0.0264
           ],
           "locked": false
         },
-        "ring1r": {
+        "c_index2.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_ring2r": {
+        "c_thumb3.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_ring3r": {
+        "c_pinky3.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_middle1_baser": {
+        "index1.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "middle1r": {
+        "c_ring2.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_middle2r": {
+        "c_middle2.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_middle3r": {
+        "c_forearm_stretch.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            0.7216,
+            0.0088,
+            0.0704
           ],
           "locked": false
         },
-        "c_index1_baser": {
+        "c_ring3.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "index1r": {
+        "thumb1.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_index2r": {
+        "c_pinky2.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_index3r": {
+        "c_ring1_base.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "thumb1r": {
+        "middle1.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         },
-        "c_thumb2r": {
+        "c_arm_stretch.r": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.628,
+            0.0264,
+            -0.132
           ],
           "locked": false
         },
-        "c_thumb3r": {
+        "ring1.l": {
           "euler": [
-            1.55,
-            0.02,
-            -0.12
+            1.364,
+            0.0176,
+            -0.1056
           ],
           "locked": false
         }
-      },
-      "id": "idle"
+      }
     },
     "typing": {
+      "id": "typing",
       "name": "打字",
       "bones": {
-        "shoulderl": {
+        "shoulder.l": {
           "euler": [
-            0.32,
-            0.04,
-            -1
+            0.2816,
+            0.0352,
+            -0.88
           ],
           "locked": false
         },
-        "c_arm_stretchl": {
+        "shoulder.r": {
           "euler": [
-            1.55,
-            0.03,
-            -0.22
+            0.2816,
+            0.0352,
+            -0.88
           ],
           "locked": false
         },
-        "c_forearm_stretchl": {
+        "ring1.r": {
           "euler": [
-            0.72,
-            0.02,
-            0.06
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "handl": {
+        "c_index1_base.r": {
           "euler": [
-            0.3,
-            0.02,
-            0.02
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_pinky1_basel": {
+        "c_pinky2.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "pinky1l": {
+        "c_pinky1_base.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_pinky2l": {
+        "c_pinky1_base.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_pinky3l": {
+        "c_index2.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_ring1_basel": {
+        "c_ring2.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "ring1l": {
+        "pinky1.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_ring2l": {
+        "c_middle1_base.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_ring3l": {
+        "c_ring3.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_middle1_basel": {
+        "c_thumb2.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "middle1l": {
+        "c_index3.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_middle2l": {
+        "c_middle3.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_middle3l": {
+        "c_forearm_stretch.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            0.6336,
+            0.0176,
+            0.0528
           ],
           "locked": false
         },
-        "c_index1_basel": {
+        "c_index3.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "index1l": {
+        "c_thumb2.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_index2l": {
+        "thumb1.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_index3l": {
+        "middle1.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "thumb1l": {
+        "c_middle2.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_thumb2l": {
+        "index1.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_thumb3l": {
+        "c_middle3.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "shoulderr": {
+        "hand.l": {
           "euler": [
-            0.32,
-            0.04,
-            -1
+            0.264,
+            0.0176,
+            0.0176
           ],
           "locked": false
         },
-        "c_arm_stretchr": {
+        "pinky1.l": {
           "euler": [
-            1.55,
-            0.03,
-            -0.22
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_forearm_stretchr": {
+        "c_pinky3.r": {
           "euler": [
-            0.72,
-            0.02,
-            0.06
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "handr": {
+        "c_ring1_base.l": {
           "euler": [
-            0.3,
-            0.02,
-            0.02
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_pinky1_baser": {
+        "c_thumb3.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "pinky1r": {
+        "c_index1_base.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_pinky2r": {
+        "c_arm_stretch.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.364,
+            0.0264,
+            -0.1936
           ],
           "locked": false
         },
-        "c_pinky3r": {
+        "c_middle1_base.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_ring1_baser": {
+        "hand.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            0.264,
+            0.0176,
+            0.0176
           ],
           "locked": false
         },
-        "ring1r": {
+        "c_index2.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_ring2r": {
+        "c_thumb3.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_ring3r": {
+        "c_pinky3.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_middle1_baser": {
+        "index1.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "middle1r": {
+        "c_ring2.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_middle2r": {
+        "c_middle2.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_middle3r": {
+        "c_forearm_stretch.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            0.6336,
+            0.0176,
+            0.0528
           ],
           "locked": false
         },
-        "c_index1_baser": {
+        "c_ring3.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "index1r": {
+        "thumb1.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_index2r": {
+        "c_pinky2.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_index3r": {
+        "c_ring1_base.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "thumb1r": {
+        "middle1.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         },
-        "c_thumb2r": {
+        "c_arm_stretch.r": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.364,
+            0.0264,
+            -0.1936
           ],
           "locked": false
         },
-        "c_thumb3r": {
+        "ring1.l": {
           "euler": [
-            1.35,
-            0.02,
-            -0.08
+            1.188,
+            0.0176,
+            -0.0704
           ],
           "locked": false
         }
-      },
-      "id": "typing"
+      }
+    },
+    "look_turn_r": {
+      "id": "look_turn_r",
+      "name": "转向右 · Blender",
+      "bones": {
+        "shoulder.l": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "shoulder.r": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "ring1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "pinky1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_02_bend.x": {
+          "euler": [
+            0.0,
+            0.0,
+            0.013067
+          ],
+          "locked": false
+        },
+        "toes_01.r": {
+          "euler": [
+            0.099565,
+            -0.000458,
+            -0.000947
+          ],
+          "locked": false
+        },
+        "thumb1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "middle1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "index1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "hand.l": {
+          "euler": [
+            -0.358629,
+            -0.159321,
+            -0.256559
+          ],
+          "locked": false
+        },
+        "pinky1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "foot.l": {
+          "euler": [
+            -0.005939,
+            0.004228,
+            -0.009119
+          ],
+          "locked": false
+        },
+        "toes_01.l": {
+          "euler": [
+            0.099565,
+            0.000458,
+            0.000947
+          ],
+          "locked": false
+        },
+        "foot.r": {
+          "euler": [
+            -0.005939,
+            -0.004228,
+            0.009119
+          ],
+          "locked": false
+        },
+        "hand.r": {
+          "euler": [
+            -0.268849,
+            -0.064896,
+            0.106712
+          ],
+          "locked": false
+        },
+        "neck.x": {
+          "euler": [
+            0.000264,
+            0.033656,
+            0.00546
+          ],
+          "locked": false
+        },
+        "index1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_01_bend.x": {
+          "euler": [
+            0.000653,
+            0.084139,
+            0.013651
+          ],
+          "locked": false
+        },
+        "thumb1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_root_bend.x": {
+          "euler": [
+            0.0,
+            0.0,
+            -0.037335
+          ],
+          "locked": false
+        },
+        "middle1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "ring1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        }
+      }
+    },
+    "look_turn_l": {
+      "id": "look_turn_l",
+      "name": "转向左 · Blender 对称",
+      "bones": {
+        "shoulder.l": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "shoulder.r": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "ring1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "pinky1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_02_bend.x": {
+          "euler": [
+            0.0,
+            0.0,
+            -0.013067
+          ],
+          "locked": false
+        },
+        "toes_01.r": {
+          "euler": [
+            0.099565,
+            0.000458,
+            0.000947
+          ],
+          "locked": false
+        },
+        "thumb1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "middle1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "index1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "hand.l": {
+          "euler": [
+            -0.358629,
+            0.159321,
+            0.256559
+          ],
+          "locked": false
+        },
+        "pinky1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "foot.l": {
+          "euler": [
+            -0.005939,
+            -0.004228,
+            0.009119
+          ],
+          "locked": false
+        },
+        "toes_01.l": {
+          "euler": [
+            0.099565,
+            -0.000458,
+            -0.000947
+          ],
+          "locked": false
+        },
+        "foot.r": {
+          "euler": [
+            -0.005939,
+            0.004228,
+            -0.009119
+          ],
+          "locked": false
+        },
+        "hand.r": {
+          "euler": [
+            -0.268849,
+            0.064896,
+            -0.106712
+          ],
+          "locked": false
+        },
+        "neck.x": {
+          "euler": [
+            0.000264,
+            -0.033656,
+            -0.00546
+          ],
+          "locked": false
+        },
+        "index1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_01_bend.x": {
+          "euler": [
+            0.000653,
+            -0.084139,
+            -0.013651
+          ],
+          "locked": false
+        },
+        "thumb1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_root_bend.x": {
+          "euler": [
+            0.0,
+            0.0,
+            0.037335
+          ],
+          "locked": false
+        },
+        "middle1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "ring1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        }
+      }
+    },
+    "look_up": {
+      "id": "look_up",
+      "name": "仰头 · Blender",
+      "bones": {
+        "shoulder.l": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "shoulder.r": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "ring1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "pinky1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_02_bend.x": {
+          "euler": [
+            -0.0528,
+            0.0,
+            0.0
+          ],
+          "locked": false
+        },
+        "toes_01.r": {
+          "euler": [
+            0.099565,
+            0.000458,
+            0.000947
+          ],
+          "locked": false
+        },
+        "thumb1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "middle1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "index1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "hand.l": {
+          "euler": [
+            -0.358629,
+            0.159321,
+            0.256559
+          ],
+          "locked": false
+        },
+        "pinky1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "foot.l": {
+          "euler": [
+            -0.005939,
+            -0.004228,
+            0.009119
+          ],
+          "locked": false
+        },
+        "toes_01.l": {
+          "euler": [
+            0.099565,
+            -0.000458,
+            -0.000947
+          ],
+          "locked": false
+        },
+        "foot.r": {
+          "euler": [
+            -0.005939,
+            0.004228,
+            -0.009119
+          ],
+          "locked": false
+        },
+        "hand.r": {
+          "euler": [
+            -0.268849,
+            0.064896,
+            -0.106712
+          ],
+          "locked": false
+        },
+        "neck.x": {
+          "euler": [
+            -0.044,
+            0.0,
+            0.0
+          ],
+          "locked": false
+        },
+        "index1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_01_bend.x": {
+          "euler": [
+            -0.0704,
+            0.0,
+            0.0
+          ],
+          "locked": false
+        },
+        "thumb1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "middle1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "ring1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        }
+      }
+    },
+    "look_down": {
+      "id": "look_down",
+      "name": "低头 · Blender",
+      "bones": {
+        "shoulder.l": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "shoulder.r": {
+          "euler": [
+            0.2816,
+            0.0352,
+            -0.88
+          ],
+          "locked": false
+        },
+        "ring1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "pinky1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_02_bend.x": {
+          "euler": [
+            0.0528,
+            0.0,
+            0.0
+          ],
+          "locked": false
+        },
+        "toes_01.r": {
+          "euler": [
+            0.099565,
+            0.000458,
+            0.000947
+          ],
+          "locked": false
+        },
+        "thumb1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "middle1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "index1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "hand.l": {
+          "euler": [
+            -0.358629,
+            0.159321,
+            0.256559
+          ],
+          "locked": false
+        },
+        "pinky1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "foot.l": {
+          "euler": [
+            -0.005939,
+            -0.004228,
+            0.009119
+          ],
+          "locked": false
+        },
+        "toes_01.l": {
+          "euler": [
+            0.099565,
+            -0.000458,
+            -0.000947
+          ],
+          "locked": false
+        },
+        "foot.r": {
+          "euler": [
+            -0.005939,
+            0.004228,
+            -0.009119
+          ],
+          "locked": false
+        },
+        "hand.r": {
+          "euler": [
+            -0.268849,
+            0.064896,
+            -0.106712
+          ],
+          "locked": false
+        },
+        "neck.x": {
+          "euler": [
+            0.044,
+            0.0,
+            0.0
+          ],
+          "locked": false
+        },
+        "index1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "c_spine_01_bend.x": {
+          "euler": [
+            0.0704,
+            0.0,
+            0.0
+          ],
+          "locked": false
+        },
+        "thumb1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "middle1.r": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        },
+        "ring1.l": {
+          "euler": [
+            1.188,
+            0.0176,
+            -0.0704
+          ],
+          "locked": false
+        }
+      }
     }
   },
   "assignments": {
-    "rest": "idle",
-    "typing": "typing"
+    "rest": "bind",
+    "typing": "bind",
+    "lookBody": "bind",
+    "lookBodyRight": "bind",
+    "lookBodyLeft": "bind",
+    "lookBodyUp": "bind",
+    "lookBodyDown": "bind"
   },
   "transitions": [
     {

@@ -2,6 +2,12 @@ import { KB_ROWS, resolveKeyId, buildKeyDomMap } from './keyboardLayout.js';
 
 /** 键盘跟随人物视线的幅度系数（<1 减弱弧线/倾角） */
 const KEYBOARD_FOLLOW_GAIN = 0.52;
+/** 设计宽度：含键盘 + 鼠标 + 间距 */
+const IO_DESIGN_W = 336;
+/** 左右留白，留给阴影与 3D 透视 */
+const IO_PAD = 40;
+/** 低于此宽度启用窄窗样式（缩小鼠标，不隐藏） */
+const IO_NARROW_W = 380;
 
 function shadeHex(hex, amount) {
   const raw = String(hex || '#e07898').replace('#', '');
@@ -99,6 +105,40 @@ export class InputOverlay {
     this._mbtnEls = this.container.querySelectorAll('[data-mbtn]');
     this.setOpacity(this._opacity);
     this.setKeyPressColor(this._keyPressColor);
+    this._bindFitScale();
+  }
+
+  /** 按窗口宽度等比缩放，避免键盘左右被裁切 */
+  refit() {
+    this._fitLayout();
+  }
+
+  _bindFitScale() {
+    this._fitLayout();
+    if (typeof ResizeObserver !== 'undefined' && this.container) {
+      this._fitObserver = new ResizeObserver(() => this._fitLayout());
+      this._fitObserver.observe(this.container);
+    } else {
+      window.addEventListener('resize', this._fitLayout);
+      this._fitOnWindowResize = true;
+    }
+  }
+
+  _fitLayout = () => {
+    if (!this.container) return;
+    const w = this.container.clientWidth || 320;
+    this.container.classList.toggle('io-narrow', w < IO_NARROW_W);
+    const scale = Math.min(1, Math.max(0.52, (w - IO_PAD) / IO_DESIGN_W));
+    this.container.style.setProperty('--io-design-w', `${IO_DESIGN_W}px`);
+    this.container.style.setProperty('--io-fit-scale', scale.toFixed(3));
+    this._fitScale = scale;
+  };
+
+  dispose() {
+    this._fitObserver?.disconnect();
+    if (this._fitOnWindowResize) {
+      window.removeEventListener('resize', this._fitLayout);
+    }
   }
 
   setKeyPressColor(hex) {
@@ -134,7 +174,8 @@ export class InputOverlay {
     const yaw = ry * gain;
 
     const arcR = 28 + 8 * s;
-    const arcX = Math.sin(yaw) * arcR;
+    const maxArc = Math.max(6, 20 * (this._fitScale ?? 1));
+    const arcX = Math.max(-maxArc, Math.min(maxArc, Math.sin(yaw) * arcR));
     const arcLift = Math.sin(pitch) * (3 + 2.5 * s);
     const depth = (1 - Math.cos(yaw)) * (6 + 3 * s);
     const faceY = (yaw * 180) / Math.PI * 0.62;

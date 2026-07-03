@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ModelLoader } from '../scene/ModelLoader.js';
+import { getModelProfile } from '../scene/modelProfiles.js';
 import { PetLighting } from '../scene/PetLighting.js';
 import { PoseController } from '../scene/PoseController.js';
 import { collectMeshEntries, classifyMeshes, loadPartsConfig } from '../scene/GltfParts.js';
@@ -58,6 +59,7 @@ export class PoseEditorScene {
   }
 
   async loadModel(url, onProgress, modelId = 'aqun_rig') {
+    this.modelLoader.setProfile(getModelProfile(modelId));
     this.modelLoader.onProgress = onProgress;
     const result = await this.modelLoader.loadWithRetry(url, 2);
     if (this.model) {
