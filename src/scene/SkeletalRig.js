@@ -4,6 +4,7 @@ import {
   blendPoseData,
   cloneLibrary,
   ease,
+  applyModelPosePolicy,
   mirrorPoseBones,
   validateLibrary,
 } from './PoseLibrary.js';
@@ -56,6 +57,23 @@ const POSE_BLEND_SMOOTH = 8;
 
 function isLookLimbBone(name) {
   return /^(hand|foot|toes_01|c_leg_stretch)/i.test(name);
+}
+
+/** look 姿势里不应参与混合的骨（肩/指等 idle 导出会扭曲躯干） */
+function isLookExcludedBone(name) {
+  const n = String(name || '').toLowerCase();
+  if (/^shoulder/.test(n)) return true;
+  if (/^(thumb|index|middle|ring|pinky)/.test(n)) return true;
+  if (/^c_(thumb|index|middle|ring|pinky)/.test(n)) return true;
+  return false;
+}
+
+function filterLookPoseBones(bones) {
+  const out = {};
+  for (const [name, entry] of Object.entries(bones ?? {})) {
+    if (!isLookExcludedBone(name)) out[name] = entry;
+  }
+  return out;
 }
 
 function expSmoothing(current, target, delta, speed) {
@@ -281,23 +299,24 @@ export class SkeletalRig {
       });
       return this;
     }
-    this._poseLibrary = cloneLibrary(lib);
+    this._poseLibrary = applyModelPosePolicy(cloneLibrary(lib), this._profile);
+    const poseLib = this._poseLibrary;
     const lookCfg = this._lookCfg();
     const lookIntensity = lookCfg.bodyIntensity ?? 1;
-    const restId = lib.assignments?.rest;
-    const typingId = lib.assignments?.typing;
-    if (restId && lib.poses?.[restId]?.bones) {
-      this._restPoseData = lib.poses[restId].bones;
+    const restId = poseLib.assignments?.rest;
+    const typingId = poseLib.assignments?.typing;
+    if (restId && poseLib.poses?.[restId]?.bones) {
+      this._restPoseData = poseLib.poses[restId].bones;
       this._fullRestPose = this._bakeFullPose(this._restPoseData);
     }
-    if (typingId && lib.poses?.[typingId]?.bones) {
-      this._typingPoseData = lib.poses[typingId].bones;
+    if (typingId && poseLib.poses?.[typingId]?.bones) {
+      this._typingPoseData = poseLib.poses[typingId].bones;
       this._fullTypingPose = this._bakeFullPose(this._typingPoseData);
     }
-    const lookRightId = lib.assignments?.lookBodyRight ?? lib.assignments?.lookBody;
-    const lookLeftId = lib.assignments?.lookBodyLeft;
-    if (lookRightId && lib.poses?.[lookRightId]?.bones) {
-      this._lookBodyRightPose = lib.poses[lookRightId].bones;
+    const lookRightId = poseLib.assignments?.lookBodyRight ?? poseLib.assignments?.lookBody;
+    const lookLeftId = poseLib.assignments?.lookBodyLeft;
+    if (lookRightId && poseLib.poses?.[lookRightId]?.bones) {
+      this._lookBodyRightPose = filterLookPoseBones(poseLib.poses[lookRightId].bones);
       this._lookBodyRightBaked = this._bakeFullPose(this._lookBodyRightPose, lookIntensity);
       const spineKey = Object.keys(this._lookBodyRightPose).find((n) => /spine_01/i.test(n));
       const spineY = Math.abs(this._lookBodyRightPose[spineKey]?.euler?.[1] ?? 0);
@@ -307,8 +326,8 @@ export class SkeletalRig {
       this._lookBodyRightBaked = null;
       this._lookBodyRefYaw = 0.1;
     }
-    if (lookLeftId && lib.poses?.[lookLeftId]?.bones) {
-      this._lookBodyLeftPose = lib.poses[lookLeftId].bones;
+    if (lookLeftId && poseLib.poses?.[lookLeftId]?.bones) {
+      this._lookBodyLeftPose = filterLookPoseBones(poseLib.poses[lookLeftId].bones);
       this._lookBodyLeftBaked = this._bakeFullPose(this._lookBodyLeftPose, lookIntensity);
     } else if (this._lookBodyRightPose) {
       this._lookBodyLeftPose = mirrorPoseBones(this._lookBodyRightPose);
@@ -317,17 +336,17 @@ export class SkeletalRig {
       this._lookBodyLeftPose = null;
       this._lookBodyLeftBaked = null;
     }
-    const lookUpId = lib.assignments?.lookBodyUp;
-    const lookDownId = lib.assignments?.lookBodyDown;
-    if (lookUpId && lib.poses?.[lookUpId]?.bones) {
-      this._lookBodyUpPose = lib.poses[lookUpId].bones;
+    const lookUpId = poseLib.assignments?.lookBodyUp;
+    const lookDownId = poseLib.assignments?.lookBodyDown;
+    if (lookUpId && poseLib.poses?.[lookUpId]?.bones) {
+      this._lookBodyUpPose = filterLookPoseBones(poseLib.poses[lookUpId].bones);
       this._lookBodyUpBaked = this._bakeFullPose(this._lookBodyUpPose, lookIntensity);
     } else {
       this._lookBodyUpPose = null;
       this._lookBodyUpBaked = null;
     }
-    if (lookDownId && lib.poses?.[lookDownId]?.bones) {
-      this._lookBodyDownPose = lib.poses[lookDownId].bones;
+    if (lookDownId && poseLib.poses?.[lookDownId]?.bones) {
+      this._lookBodyDownPose = filterLookPoseBones(poseLib.poses[lookDownId].bones);
       this._lookBodyDownBaked = this._bakeFullPose(this._lookBodyDownPose, lookIntensity);
     } else {
       this._lookBodyDownPose = null;
@@ -340,7 +359,8 @@ export class SkeletalRig {
       lookBodyLeft: lookLeftId ?? '(mirrored)',
       lookBodyUp: lookUpId,
       lookBodyDown: lookDownId,
-      bones: Object.keys(lib.poses?.[restId]?.bones ?? {}).length,
+      bones: Object.keys(poseLib.poses?.[restId]?.bones ?? {}).length,
+      bindOnlyRest: !!this._profile?.bindOnlyRest,
     });
     this.applyRestPose();
     return this;
@@ -439,12 +459,16 @@ export class SkeletalRig {
   }
 
   _lookBoneNames() {
-    return new Set([
+    const names = new Set([
       ...Object.keys(this._lookBodyRightPose ?? {}),
       ...Object.keys(this._lookBodyLeftPose ?? {}),
       ...Object.keys(this._lookBodyUpPose ?? {}),
       ...Object.keys(this._lookBodyDownPose ?? {}),
     ]);
+    for (const name of [...names]) {
+      if (isLookExcludedBone(name)) names.delete(name);
+    }
+    return names;
   }
 
   _getLookRestQuat(boneName, bone) {

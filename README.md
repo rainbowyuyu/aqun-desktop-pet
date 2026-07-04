@@ -21,10 +21,10 @@ npm run dev
 npm run build:win
 # 输出：
 #   release/win-unpacked/启动.exe
-#   启动/启动.exe          ← 项目根目录便携版，可直接双击
+#   给阿群的生日礼物/启动.exe   ← 项目根目录便携版，可直接双击
 ```
 
-打包前请关闭正在运行的「启动」或 Electron 进程，否则可能因文件占用失败。
+打包前请关闭正在运行的桌宠或 Electron 进程，否则可能因文件占用失败。
 
 ---
 

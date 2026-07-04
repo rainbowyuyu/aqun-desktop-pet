@@ -2,6 +2,8 @@
 node_modules/
 dist/
 release/
+给阿群的生日礼物/
+给阿群的生日礼物.bat
 启动/
 启动.bat
 build/icon.ico
@@ -41,3 +43,4 @@ electron/aiSecrets.local.cjs
 tmp/
 temp/
 .cache/
+来自东方的神秘礼物.zip

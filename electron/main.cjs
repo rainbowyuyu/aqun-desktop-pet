@@ -620,14 +620,24 @@ function readUserPoseLibrary(modelId) {
 function readPoseLibrary(modelId) {
   const bundled = readBundledPoseLibrary(modelId);
   const user = readUserPoseLibrary(modelId);
+  let merged = null;
   if (!bundled && !user) return null;
-  if (!user) return bundled;
-  if (!bundled) return user;
-  return {
-    ...user,
-    poses: { ...bundled.poses, ...user.poses },
-    assignments: { ...bundled.assignments, ...user.assignments },
-  };
+  if (!user) merged = bundled;
+  else if (!bundled) merged = user;
+  else {
+    merged = {
+      ...user,
+      poses: { ...bundled.poses, ...user.poses },
+      assignments: { ...bundled.assignments, ...user.assignments },
+    };
+  }
+  if ((modelId === 'aqun_rig' || modelId === 'ty_rig') && merged?.assignments) {
+    merged = {
+      ...merged,
+      assignments: { ...merged.assignments, rest: 'bind', typing: 'bind' },
+    };
+  }
+  return merged;
 }
 
 function resolveModelFilePath(modelId) {

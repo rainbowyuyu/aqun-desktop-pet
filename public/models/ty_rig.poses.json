@@ -760,179 +760,83 @@
       "id": "look_turn_r",
       "name": "转向右 · Blender",
       "bones": {
-        "shoulder.l": {
+        "c_root_bend.x": {
           "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "shoulder.r": {
-          "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "ring1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "pinky1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "c_spine_02_bend.x": {
-          "euler": [
-            0.0,
-            0.0,
-            0.013067
-          ],
-          "locked": false
-        },
-        "toes_01.r": {
-          "euler": [
-            0.099565,
-            -0.000458,
-            -0.000947
-          ],
-          "locked": false
-        },
-        "thumb1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "middle1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "index1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "hand.l": {
-          "euler": [
-            -0.358629,
-            -0.159321,
-            -0.256559
-          ],
-          "locked": false
-        },
-        "pinky1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "foot.l": {
-          "euler": [
-            -0.005939,
-            0.004228,
-            -0.009119
-          ],
-          "locked": false
-        },
-        "toes_01.l": {
-          "euler": [
-            0.099565,
-            0.000458,
-            0.000947
-          ],
-          "locked": false
-        },
-        "foot.r": {
-          "euler": [
-            -0.005939,
-            -0.004228,
-            0.009119
-          ],
-          "locked": false
-        },
-        "hand.r": {
-          "euler": [
-            -0.268849,
-            -0.064896,
-            0.106712
-          ],
-          "locked": false
-        },
-        "neck.x": {
-          "euler": [
-            0.000264,
-            0.033656,
-            0.00546
-          ],
-          "locked": false
-        },
-        "index1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            0,
+            0,
+            -0.042426
           ],
           "locked": false
         },
         "c_spine_01_bend.x": {
           "euler": [
-            0.000653,
-            0.084139,
-            0.013651
+            0.000742,
+            0.095612,
+            0.015513
           ],
           "locked": false
         },
-        "thumb1.r": {
+        "c_spine_02_bend.x": {
           "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            0,
+            0,
+            0.014849
           ],
           "locked": false
         },
-        "c_root_bend.x": {
+        "neck.x": {
           "euler": [
-            0.0,
-            0.0,
-            -0.037335
+            0.0003,
+            0.038245,
+            0.006205
           ],
           "locked": false
         },
-        "middle1.r": {
+        "hand.l": {
           "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            -0.407533,
+            -0.181047,
+            -0.291544
           ],
           "locked": false
         },
-        "ring1.l": {
+        "hand.r": {
           "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            -0.30551,
+            -0.073745,
+            0.121264
+          ],
+          "locked": false
+        },
+        "foot.l": {
+          "euler": [
+            -0.006749,
+            0.004804,
+            -0.010362
+          ],
+          "locked": false
+        },
+        "foot.r": {
+          "euler": [
+            -0.006749,
+            -0.004804,
+            0.010362
+          ],
+          "locked": false
+        },
+        "toes_01.l": {
+          "euler": [
+            0.113142,
+            0.000521,
+            0.001076
+          ],
+          "locked": false
+        },
+        "toes_01.r": {
+          "euler": [
+            0.113142,
+            -0.000521,
+            -0.001076
           ],
           "locked": false
         }
@@ -942,179 +846,83 @@
       "id": "look_turn_l",
       "name": "转向左 · Blender 对称",
       "bones": {
-        "shoulder.l": {
+        "c_root_bend.x": {
           "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "shoulder.r": {
-          "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "ring1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "pinky1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "c_spine_02_bend.x": {
-          "euler": [
-            0.0,
-            0.0,
-            -0.013067
-          ],
-          "locked": false
-        },
-        "toes_01.r": {
-          "euler": [
-            0.099565,
-            0.000458,
-            0.000947
-          ],
-          "locked": false
-        },
-        "thumb1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "middle1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "index1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "hand.l": {
-          "euler": [
-            -0.358629,
-            0.159321,
-            0.256559
-          ],
-          "locked": false
-        },
-        "pinky1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "foot.l": {
-          "euler": [
-            -0.005939,
-            -0.004228,
-            0.009119
-          ],
-          "locked": false
-        },
-        "toes_01.l": {
-          "euler": [
-            0.099565,
-            -0.000458,
-            -0.000947
-          ],
-          "locked": false
-        },
-        "foot.r": {
-          "euler": [
-            -0.005939,
-            0.004228,
-            -0.009119
-          ],
-          "locked": false
-        },
-        "hand.r": {
-          "euler": [
-            -0.268849,
-            0.064896,
-            -0.106712
-          ],
-          "locked": false
-        },
-        "neck.x": {
-          "euler": [
-            0.000264,
-            -0.033656,
-            -0.00546
-          ],
-          "locked": false
-        },
-        "index1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            0,
+            0,
+            0.042426
           ],
           "locked": false
         },
         "c_spine_01_bend.x": {
           "euler": [
-            0.000653,
-            -0.084139,
-            -0.013651
+            0.000742,
+            -0.095612,
+            -0.015513
           ],
           "locked": false
         },
-        "thumb1.r": {
+        "c_spine_02_bend.x": {
           "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            0,
+            0,
+            -0.014849
           ],
           "locked": false
         },
-        "c_root_bend.x": {
+        "neck.x": {
           "euler": [
-            0.0,
-            0.0,
-            0.037335
+            0.0003,
+            -0.038245,
+            -0.006205
           ],
           "locked": false
         },
-        "middle1.r": {
+        "hand.l": {
           "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            -0.407533,
+            0.181047,
+            0.291544
           ],
           "locked": false
         },
-        "ring1.l": {
+        "hand.r": {
           "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            -0.30551,
+            0.073745,
+            -0.121264
+          ],
+          "locked": false
+        },
+        "foot.l": {
+          "euler": [
+            -0.006749,
+            -0.004804,
+            0.010362
+          ],
+          "locked": false
+        },
+        "foot.r": {
+          "euler": [
+            -0.006749,
+            0.004804,
+            -0.010362
+          ],
+          "locked": false
+        },
+        "toes_01.l": {
+          "euler": [
+            0.113142,
+            -0.000521,
+            -0.001076
+          ],
+          "locked": false
+        },
+        "toes_01.r": {
+          "euler": [
+            0.113142,
+            0.000521,
+            0.001076
           ],
           "locked": false
         }
@@ -1124,171 +932,27 @@
       "id": "look_up",
       "name": "仰头 · Blender",
       "bones": {
-        "shoulder.l": {
+        "c_spine_01_bend.x": {
           "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "shoulder.r": {
-          "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "ring1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "pinky1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            -0.08,
+            0,
+            0
           ],
           "locked": false
         },
         "c_spine_02_bend.x": {
           "euler": [
-            -0.0528,
-            0.0,
-            0.0
-          ],
-          "locked": false
-        },
-        "toes_01.r": {
-          "euler": [
-            0.099565,
-            0.000458,
-            0.000947
-          ],
-          "locked": false
-        },
-        "thumb1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "middle1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "index1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "hand.l": {
-          "euler": [
-            -0.358629,
-            0.159321,
-            0.256559
-          ],
-          "locked": false
-        },
-        "pinky1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "foot.l": {
-          "euler": [
-            -0.005939,
-            -0.004228,
-            0.009119
-          ],
-          "locked": false
-        },
-        "toes_01.l": {
-          "euler": [
-            0.099565,
-            -0.000458,
-            -0.000947
-          ],
-          "locked": false
-        },
-        "foot.r": {
-          "euler": [
-            -0.005939,
-            0.004228,
-            -0.009119
-          ],
-          "locked": false
-        },
-        "hand.r": {
-          "euler": [
-            -0.268849,
-            0.064896,
-            -0.106712
+            -0.06,
+            0,
+            0
           ],
           "locked": false
         },
         "neck.x": {
           "euler": [
-            -0.044,
-            0.0,
-            0.0
-          ],
-          "locked": false
-        },
-        "index1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "c_spine_01_bend.x": {
-          "euler": [
-            -0.0704,
-            0.0,
-            0.0
-          ],
-          "locked": false
-        },
-        "thumb1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "middle1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "ring1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            -0.05,
+            0,
+            0
           ],
           "locked": false
         }
@@ -1298,171 +962,27 @@
       "id": "look_down",
       "name": "低头 · Blender",
       "bones": {
-        "shoulder.l": {
+        "c_spine_01_bend.x": {
           "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "shoulder.r": {
-          "euler": [
-            0.2816,
-            0.0352,
-            -0.88
-          ],
-          "locked": false
-        },
-        "ring1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "pinky1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            0.08,
+            0,
+            0
           ],
           "locked": false
         },
         "c_spine_02_bend.x": {
           "euler": [
-            0.0528,
-            0.0,
-            0.0
-          ],
-          "locked": false
-        },
-        "toes_01.r": {
-          "euler": [
-            0.099565,
-            0.000458,
-            0.000947
-          ],
-          "locked": false
-        },
-        "thumb1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "middle1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "index1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "hand.l": {
-          "euler": [
-            -0.358629,
-            0.159321,
-            0.256559
-          ],
-          "locked": false
-        },
-        "pinky1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "foot.l": {
-          "euler": [
-            -0.005939,
-            -0.004228,
-            0.009119
-          ],
-          "locked": false
-        },
-        "toes_01.l": {
-          "euler": [
-            0.099565,
-            -0.000458,
-            -0.000947
-          ],
-          "locked": false
-        },
-        "foot.r": {
-          "euler": [
-            -0.005939,
-            0.004228,
-            -0.009119
-          ],
-          "locked": false
-        },
-        "hand.r": {
-          "euler": [
-            -0.268849,
-            0.064896,
-            -0.106712
+            0.06,
+            0,
+            0
           ],
           "locked": false
         },
         "neck.x": {
           "euler": [
-            0.044,
-            0.0,
-            0.0
-          ],
-          "locked": false
-        },
-        "index1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "c_spine_01_bend.x": {
-          "euler": [
-            0.0704,
-            0.0,
-            0.0
-          ],
-          "locked": false
-        },
-        "thumb1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "middle1.r": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
-          ],
-          "locked": false
-        },
-        "ring1.l": {
-          "euler": [
-            1.188,
-            0.0176,
-            -0.0704
+            0.05,
+            0,
+            0
           ],
           "locked": false
         }
@@ -1472,11 +992,11 @@
   "assignments": {
     "rest": "bind",
     "typing": "bind",
-    "lookBody": "bind",
-    "lookBodyRight": "bind",
-    "lookBodyLeft": "bind",
-    "lookBodyUp": "bind",
-    "lookBodyDown": "bind"
+    "lookBody": "look_turn_r",
+    "lookBodyRight": "look_turn_r",
+    "lookBodyLeft": "look_turn_l",
+    "lookBodyUp": "look_up",
+    "lookBodyDown": "look_down"
   },
   "transitions": [
     {

@@ -42,17 +42,38 @@ function startKeyboardPoll(onEvent) {
   const GetAsyncKeyState = user32.func('short __stdcall GetAsyncKeyState(int vKey)');
 
   const down = new Uint8Array(VK_KEYS.length);
+  const heldAt = new Float64Array(VK_KEYS.length);
+  const lastRepeat = new Float64Array(VK_KEYS.length);
+  const REPEAT_DELAY_MS = 380;
+  const REPEAT_INTERVAL_MS = 42;
+
+  const NO_REPEAT = new Set([
+    'LEFT SHIFT', 'RIGHT SHIFT', 'LEFT CTRL', 'RIGHT CTRL',
+    'LEFT ALT', 'RIGHT ALT', 'LEFT META', 'RIGHT META',
+    'CAPS LOCK', 'TAB', 'ESCAPE',
+  ]);
 
   const timer = setInterval(() => {
+    const now = Date.now();
     for (let i = 0; i < VK_KEYS.length; i += 1) {
       const [vk, name] = VK_KEYS[i];
       const pressed = (GetAsyncKeyState(vk) & 0x8000) !== 0;
       if (pressed && !down[i]) {
         down[i] = 1;
-        onEvent({ code: vk, name, type: 'down', timestamp: Date.now() });
+        heldAt[i] = now;
+        lastRepeat[i] = now;
+        onEvent({ code: vk, name, type: 'down', timestamp: now });
+      } else if (pressed && down[i] && !NO_REPEAT.has(name)) {
+        const held = now - heldAt[i];
+        if (held > REPEAT_DELAY_MS && now - lastRepeat[i] >= REPEAT_INTERVAL_MS) {
+          lastRepeat[i] = now;
+          onEvent({ code: vk, name, type: 'down', timestamp: now, repeat: true });
+        }
       } else if (!pressed && down[i]) {
         down[i] = 0;
-        onEvent({ code: vk, name, type: 'up', timestamp: Date.now() });
+        heldAt[i] = 0;
+        lastRepeat[i] = 0;
+        onEvent({ code: vk, name, type: 'up', timestamp: now });
       }
     }
   }, POLL_MS);
@@ -60,6 +81,8 @@ function startKeyboardPoll(onEvent) {
   return () => {
     clearInterval(timer);
     down.fill(0);
+    heldAt.fill(0);
+    lastRepeat.fill(0);
   };
 }
 

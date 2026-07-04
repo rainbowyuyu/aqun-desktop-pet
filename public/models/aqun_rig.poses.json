@@ -893,8 +893,8 @@
     }
   },
   "assignments": {
-    "rest": "idle",
-    "typing": "typing",
+    "rest": "bind",
+    "typing": "bind",
     "lookBody": "look_turn_r",
     "lookBodyRight": "look_turn_r",
     "lookBodyLeft": "look_turn_l",

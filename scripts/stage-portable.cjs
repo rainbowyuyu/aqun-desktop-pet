@@ -1,9 +1,16 @@
 /**
- * 将 release/win-unpacked 同步到项目根目录 启动/，便于直接双击运行
+ * 将 release/win-unpacked 同步到项目根目录便携文件夹，便于直接双击运行
  */
 const fs = require('fs');
 const path = require('path');
-const { APP_EXE_NAME, UNPACKED_DIR, STAGE_DIR } = require('./build-config.cjs');
+const {
+  APP_EXE_NAME,
+  UNPACKED_DIR,
+  STAGE_DIR,
+  STAGE_LAUNCHER_BAT,
+  LEGACY_STAGE_DIRS = [],
+  LEGACY_LAUNCHER_BATS = [],
+} = require('./build-config.cjs');
 
 function rimraf(dir) {
   if (!fs.existsSync(dir)) return;
@@ -35,6 +42,12 @@ function main() {
     process.exit(1);
   }
 
+  for (const legacy of LEGACY_STAGE_DIRS) {
+    if (legacy && legacy !== STAGE_DIR) {
+      rimraf(path.join(root, legacy));
+    }
+  }
+
   console.log(`==> 同步便携版到 ${STAGE_DIR}/`);
   rimraf(stageDir);
   copyRecursive(srcDir, stageDir);
@@ -42,14 +55,23 @@ function main() {
   const stageExe = path.join(stageDir, APP_EXE_NAME);
   console.log(`✓ ${stageExe}`);
 
-  // 根目录快捷入口（跳转到 启动/ 目录运行，避免缺少 DLL）
-  const rootLauncher = path.join(root, '启动.bat');
+  const rootLauncher = path.join(root, STAGE_LAUNCHER_BAT);
   fs.writeFileSync(
     rootLauncher,
-    '@echo off\r\nstart "" "%~dp0启动\\启动.exe"\r\n',
+    `@echo off\r\nstart "" "%~dp0${STAGE_DIR}\\${APP_EXE_NAME}"\r\n`,
     'utf8',
   );
   console.log(`✓ ${rootLauncher}`);
+
+  for (const legacyBat of LEGACY_LAUNCHER_BATS) {
+    if (legacyBat && legacyBat !== STAGE_LAUNCHER_BAT) {
+      const legacyPath = path.join(root, legacyBat);
+      if (fs.existsSync(legacyPath)) {
+        fs.unlinkSync(legacyPath);
+        console.log(`✓ removed legacy ${legacyBat}`);
+      }
+    }
+  }
 }
 
 main();

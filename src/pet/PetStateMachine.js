@@ -7,6 +7,10 @@ const IDLE_TIMEOUT_MS = 4500;
 
 const TYPING_COOLDOWN_MS = 120;
 
+const CHATTY_BUBBLE_CATEGORIES = new Set(['enter', 'backspace', 'space']);
+const CHATTY_BUBBLE_COOLDOWN_MS = 9000;
+const CHATTY_BUBBLE_CHANCE = 0.4;
+
 
 
 const STATE_PRIORITY = {
@@ -93,8 +97,21 @@ export class PetStateMachine {
 
     this._lastReactionAt = 0;
 
+    this._lastChattyBubbleAt = 0;
+
     this.typingSpeed = 0;
 
+  }
+
+  _maybeBubble(category) {
+    if (!category) return;
+    if (CHATTY_BUBBLE_CATEGORIES.has(category)) {
+      const now = Date.now();
+      if (now - this._lastChattyBubbleAt < CHATTY_BUBBLE_COOLDOWN_MS) return;
+      if (Math.random() > CHATTY_BUBBLE_CHANCE) return;
+      this._lastChattyBubbleAt = now;
+    }
+    this.onBubble?.(category);
   }
 
   _playClipOr(name, fallback) {
@@ -207,7 +224,7 @@ export class PetStateMachine {
           break;
         }
 
-        this.onBubble?.('space');
+        this._maybeBubble('space');
 
         break;
 
@@ -218,7 +235,7 @@ export class PetStateMachine {
           this.animations.playKeyStrike('center', 0.7);
         })) break;
 
-        this.onBubble?.(reaction.bubble);
+        this._maybeBubble(reaction.bubble);
 
         break;
 
@@ -230,7 +247,7 @@ export class PetStateMachine {
 
         this.animations.playSurprised();
 
-        this.onBubble?.(reaction.bubble);
+        this._maybeBubble(reaction.bubble);
 
         break;
 
@@ -415,7 +432,7 @@ export class PetStateMachine {
 
         })) return;
 
-        this.onBubble?.('enter');
+        this._maybeBubble('enter');
 
         this._scheduleIdleCheck();
 

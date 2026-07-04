@@ -31,6 +31,19 @@ export function validateLibraryForModel(lib, modelId) {
   return lib.modelId === modelId;
 }
 
+/** 按模型 profile 修正 assignments（如 aqun_rig 蒙皮与 idle 不兼容） */
+export function applyModelPosePolicy(lib, profile) {
+  if (!lib || !profile?.bindOnlyRest) return lib;
+  return {
+    ...lib,
+    assignments: {
+      ...lib.assignments,
+      rest: 'bind',
+      typing: 'bind',
+    },
+  };
+}
+
 export function cloneLibrary(lib) {
   return JSON.parse(JSON.stringify(lib));
 }

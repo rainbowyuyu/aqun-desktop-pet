@@ -291,8 +291,13 @@ export class PetScene {
       await this.skeletalRig.loadPoseLibraryFromUrl(bundledUrl);
     }
 
-    if (this.skeletalRig.hasPoseLibrary?.()) {
+    const profile = getModelProfile(modelId);
+    if (profile.useGltfIdle === false) {
       this.modelLoader.setIdleClipWeight?.(0);
+    } else if (this.skeletalRig.hasPoseLibrary?.()) {
+      this.modelLoader.setIdleClipWeight?.(profile.bindOnlyRest ? 1 : 0);
+    } else {
+      this.modelLoader.setIdleClipWeight?.(1);
     }
   }
 

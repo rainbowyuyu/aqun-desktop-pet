@@ -210,6 +210,7 @@ export class ModelLoader {
   }
 
   _startIdleLoop() {
+    if (this._profile?.useGltfIdle === false) return;
     const idle = this.findClip(/^idle$/i) || this.findClip(/idle|breath|stand/i);
     if (!idle) return;
     idle.setLoop(THREE.LoopRepeat, Infinity);

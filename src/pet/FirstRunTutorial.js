@@ -7,28 +7,28 @@ const STEPS = [
     desc: '按住模型，把她拖到桌面任意位置。',
   },
   {
-    icon: 'resize',
-    title: '右键缩放',
-    desc: '按住右键左右滑动，调整窗口大小。',
-  },
-  {
-    icon: 'tap',
-    title: '点击互动',
-    desc: '单击戳一下 · 双击挥手 · 三击转圈。',
-  },
-  {
-    icon: 'menu',
-    title: '右键菜单',
-    desc: '右键轻点（不要拖动）打开快捷菜单。',
-  },
-  {
     icon: 'panel',
-    title: '控制中心',
-    desc: '任务栏托盘找到模型图标，点「✦ 控制中心」。',
+    title: '右键打开控制面板',
+    desc: '在模型上右键轻点（不要左右拖动），打开菜单后点「✦ 控制中心」。',
+  },
+  {
+    icon: 'lock',
+    title: '锁定窗口位置',
+    desc: '在菜单或控制中心开启「锁定窗口位置」，模型就不会被误拖走。',
+  },
+  {
+    icon: 'through',
+    title: '鼠标穿透',
+    desc: '开启「鼠标穿透」后，点击会穿过模型到达下方窗口；需要互动时再关掉即可。',
+  },
+  {
+    icon: 'tray',
+    title: '托盘小图标',
+    desc: '穿透后点不到模型也没关系，任务栏右下角托盘区仍有模型小图标，右键可显示/隐藏、打开控制中心、切换穿透等。',
   },
 ];
 
-/** 首次使用 · 隐蔽入口 + 动画教程 */
+/** 首次使用 · 动画教程（可自动弹出） */
 export class FirstRunTutorial {
   constructor({ root, onComplete, onOpenChange }) {
     this.root = root;
@@ -36,6 +36,7 @@ export class FirstRunTutorial {
     this.onOpenChange = onOpenChange;
     this._step = 0;
     this._open = false;
+    this._autoOpenTimer = null;
     this._mount();
   }
 
@@ -46,7 +47,7 @@ export class FirstRunTutorial {
     el.setAttribute('data-ui-overlay', '');
     el.innerHTML = `
       <div class="ft-backdrop" data-tutorial-backdrop hidden aria-hidden="true"></div>
-      <button type="button" class="first-tutorial-seed" data-tutorial-seed aria-label="使用提示">
+      <button type="button" class="first-tutorial-seed" data-tutorial-seed aria-label="使用提示" hidden>
         <span class="first-tutorial-seed-core"></span>
         <span class="first-tutorial-seed-ring"></span>
       </button>
@@ -93,10 +94,6 @@ export class FirstRunTutorial {
     this.panel?.addEventListener('pointerdown', this._stopPanelBubble);
     this.panel?.addEventListener('mousedown', this._stopPanelBubble);
 
-    this.seed?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this._openPanel();
-    });
     this.nextBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
       this._next();
@@ -105,28 +102,35 @@ export class FirstRunTutorial {
       e.stopPropagation();
       this._finish();
     });
-
-    gsap.to(this.seed?.querySelector('.first-tutorial-seed-ring'), {
-      scale: 1.8,
-      opacity: 0,
-      duration: 2.4,
-      repeat: -1,
-      ease: 'sine.out',
-    });
   }
 
-  start() {
+  /**
+   * @param {{ autoOpenDelayMs?: number }} [options]
+   */
+  start({ autoOpenDelayMs = 4000 } = {}) {
     this.el.hidden = false;
-    gsap.fromTo(this.seed, { opacity: 0 }, { opacity: 1, duration: 1.2, delay: 2.5, ease: 'power2.out' });
+    gsap.set(this.seed, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' });
+    this._autoOpenTimer = setTimeout(() => {
+      this._autoOpenTimer = null;
+      this._openPanel();
+    }, Math.max(0, autoOpenDelayMs));
   }
 
   /** 测试/预览：直接打开完整教程面板 */
   preview() {
+    this._clearAutoOpenTimer();
     this.el.hidden = false;
     gsap.set(this.seed, { opacity: 0, pointerEvents: 'none' });
     this._open = false;
     this._openPanel();
     gsap.fromTo(this.el, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power2.out' });
+  }
+
+  _clearAutoOpenTimer() {
+    if (this._autoOpenTimer) {
+      clearTimeout(this._autoOpenTimer);
+      this._autoOpenTimer = null;
+    }
   }
 
   _setOpenState(open) {
@@ -174,14 +178,17 @@ export class FirstRunTutorial {
     if (icon === 'drag') {
       return `<div class="ft-anim ft-anim--drag"><span class="ft-hand ft-hand--left"></span><span class="ft-cursor-path"></span><span class="ft-pet-dot"></span></div>`;
     }
-    if (icon === 'resize') {
-      return `<div class="ft-anim ft-anim--resize"><span class="ft-frame"></span><span class="ft-hand ft-hand--right"></span><span class="ft-arrow ft-arrow--l"></span><span class="ft-arrow ft-arrow--r"></span></div>`;
+    if (icon === 'panel') {
+      return `<div class="ft-anim ft-anim--menu"><span class="ft-hand ft-hand--right"></span><span class="ft-menu-card">✦ 控制中心</span></div>`;
     }
-    if (icon === 'tap') {
-      return `<div class="ft-anim ft-anim--tap"><span class="ft-tap ft-tap--1">1</span><span class="ft-tap ft-tap--2">2</span><span class="ft-tap ft-tap--3">3</span></div>`;
+    if (icon === 'lock') {
+      return `<div class="ft-anim ft-anim--lock"><span class="ft-lock-body"></span><span class="ft-lock-shackle"></span><span class="ft-lock-label">锁定</span></div>`;
     }
-    if (icon === 'menu') {
-      return `<div class="ft-anim ft-anim--menu"><span class="ft-hand ft-hand--right"></span><span class="ft-menu-card"></span></div>`;
+    if (icon === 'through') {
+      return `<div class="ft-anim ft-anim--through"><span class="ft-pet-dot ft-pet-dot--ghost"></span><span class="ft-through-cursor"></span></div>`;
+    }
+    if (icon === 'tray') {
+      return `<div class="ft-anim ft-anim--tray"><span class="ft-tray"></span><span class="ft-tray-icon"></span><span class="ft-tray-tip">右键控制</span></div>`;
     }
     return `<div class="ft-anim ft-anim--panel"><span class="ft-tray"></span><span class="ft-tray-menu">✦ 控制中心</span></div>`;
   }
@@ -196,32 +203,33 @@ export class FirstRunTutorial {
         .to(dot, { x: 36, y: -10, duration: 1.1, ease: 'power1.inOut' }, 0)
         .to(hand, { x: 0, y: 0, duration: 1.1, ease: 'power1.inOut' })
         .to(dot, { x: 0, y: 0, duration: 1.1, ease: 'power1.inOut' }, '-=1.1');
-    } else if (icon === 'resize') {
-      const frame = this.stage.querySelector('.ft-frame');
-      const hand = this.stage.querySelector('.ft-hand--right');
-      gsap.timeline({ repeat: -1 })
-        .to(hand, { x: 22, duration: 0.7, ease: 'power1.inOut' })
-        .to(frame, { scaleX: 1.18, duration: 0.7, ease: 'power1.inOut' }, 0)
-        .to(hand, { x: -22, duration: 0.7, ease: 'power1.inOut' })
-        .to(frame, { scaleX: 0.88, duration: 0.7, ease: 'power1.inOut' }, '-=0.7');
-    } else if (icon === 'tap') {
-      ['.ft-tap--1', '.ft-tap--2', '.ft-tap--3'].forEach((sel, i) => {
-        gsap.to(this.stage.querySelector(sel), {
-          scale: 1.15,
-          opacity: 1,
-          duration: 0.25,
-          repeat: -1,
-          yoyo: true,
-          delay: i * 0.35,
-          ease: 'power1.inOut',
-        });
-      });
-    } else if (icon === 'menu') {
+    } else if (icon === 'panel') {
       gsap.timeline({ repeat: -1 })
         .fromTo(this.stage.querySelector('.ft-menu-card'), { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' })
         .to(this.stage.querySelector('.ft-menu-card'), { opacity: 0, y: 6, duration: 0.35, delay: 0.8, ease: 'power2.in' });
-    } else {
-      gsap.fromTo(this.stage.querySelector('.ft-tray-menu'), { opacity: 0.4, y: 4 }, { opacity: 1, y: 0, duration: 0.6, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    } else if (icon === 'lock') {
+      const shackle = this.stage.querySelector('.ft-lock-shackle');
+      gsap.timeline({ repeat: -1 })
+        .to(shackle, { y: -4, duration: 0.45, ease: 'back.out(2)' })
+        .to(shackle, { y: 0, duration: 0.35, ease: 'power2.in' })
+        .to({}, { duration: 0.9 });
+    } else if (icon === 'through') {
+      const cursor = this.stage.querySelector('.ft-through-cursor');
+      const dot = this.stage.querySelector('.ft-pet-dot');
+      gsap.timeline({ repeat: -1 })
+        .set(cursor, { opacity: 1, x: -28, y: 8 })
+        .to(cursor, { x: 28, y: -8, duration: 1.2, ease: 'power1.inOut' })
+        .to(dot, { opacity: 0.35, duration: 0.25 }, 0.35)
+        .to(dot, { opacity: 1, duration: 0.25 }, 0.85)
+        .to(cursor, { opacity: 0.4, duration: 0.3 }, '-=0.2');
+    } else if (icon === 'tray') {
+      const iconEl = this.stage.querySelector('.ft-tray-icon');
+      const tip = this.stage.querySelector('.ft-tray-tip');
+      gsap.timeline({ repeat: -1 })
+        .fromTo(iconEl, { scale: 0.85, opacity: 0.55 }, { scale: 1.08, opacity: 1, duration: 0.55, ease: 'sine.inOut' })
+        .to(iconEl, { scale: 0.92, opacity: 0.75, duration: 0.55, ease: 'sine.inOut' })
+        .fromTo(tip, { opacity: 0.35, y: 2 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 0)
+        .to(tip, { opacity: 0.4, duration: 0.35, delay: 0.5 }, '-=0.2');
     }
   }
 
@@ -235,6 +243,7 @@ export class FirstRunTutorial {
   }
 
   _finish() {
+    this._clearAutoOpenTimer();
     this._setOpenState(false);
     gsap.to([this.panel, this.backdrop], {
       opacity: 0,
@@ -258,6 +267,7 @@ export class FirstRunTutorial {
   }
 
   dispose() {
+    this._clearAutoOpenTimer();
     this._setOpenState(false);
     this.panel?.removeEventListener('pointerdown', this._stopPanelBubble);
     this.panel?.removeEventListener('mousedown', this._stopPanelBubble);

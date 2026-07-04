@@ -20,6 +20,7 @@ export class BirthdayIntro {
     this._done = false;
     this._modelRevealStarted = false;
     this._revealTl = null;
+    this._giftAutoOpenTimer = null;
   }
 
   _prepareModelRevealStart() {
@@ -240,6 +241,12 @@ export class BirthdayIntro {
       this._resumeGiftOpen();
     };
     this._openBtn?.addEventListener('click', this._onOpenGift);
+    this._giftWrap?.addEventListener('click', (e) => {
+      if (!this._giftWrap?.classList.contains('is-waiting')) return;
+      if (e.target.closest('[data-bi-open]')) return;
+      e.stopPropagation();
+      this._resumeGiftOpen();
+    });
     el.addEventListener('pointerdown', (e) => {
       if (e.target.closest('[data-bi-skip]')) return;
       e.stopPropagation();
@@ -306,6 +313,13 @@ export class BirthdayIntro {
     }
   }
 
+  _clearGiftAutoOpenTimer() {
+    if (this._giftAutoOpenTimer) {
+      clearTimeout(this._giftAutoOpenTimer);
+      this._giftAutoOpenTimer = null;
+    }
+  }
+
   _enterGiftWaitGate() {
     if (this._giftGateDone || this._done) return;
     this._tl?.pause();
@@ -318,6 +332,13 @@ export class BirthdayIntro {
       );
     }
     this._giftWrap?.classList.add('is-waiting');
+    this._clearGiftAutoOpenTimer();
+    this._giftAutoOpenTimer = setTimeout(() => {
+      this._giftAutoOpenTimer = null;
+      if (!this._giftGateDone && !this._done) {
+        this._resumeGiftOpen();
+      }
+    }, 12000);
     gsap.to(this._giftWrap?.querySelector('.bi-gift-glow'), {
       opacity: 0.95,
       scale: 1.28,
@@ -338,6 +359,7 @@ export class BirthdayIntro {
   _resumeGiftOpen() {
     if (this._giftGateDone || this._done) return;
     this._giftGateDone = true;
+    this._clearGiftAutoOpenTimer();
     this._tl?.pause();
     gsap.killTweensOf([
       this._giftWrap?.querySelector('.bi-gift-glow'),
@@ -351,6 +373,7 @@ export class BirthdayIntro {
   }
 
   play() {
+    window.aqunPet?.setIgnoreMouseEvents?.(false);
     return new Promise((resolve) => {
       this._resolve = resolve;
       this._done = false;
@@ -476,6 +499,7 @@ export class BirthdayIntro {
   _finish(skipped) {
     if (this._done) return;
     this._done = true;
+    this._clearGiftAutoOpenTimer();
     this._tl?.kill();
     this._revealTl?.kill();
     gsap.killTweensOf([this.el, this.canvas]);
@@ -498,6 +522,7 @@ export class BirthdayIntro {
   }
 
   dispose() {
+    this._clearGiftAutoOpenTimer();
     this._tl?.kill();
     this._revealTl?.kill();
     this._openBtn?.removeEventListener('click', this._onOpenGift);

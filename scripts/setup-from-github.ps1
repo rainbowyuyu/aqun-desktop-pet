@@ -25,6 +25,6 @@ Write-Host "==> 安装依赖并打包..." -ForegroundColor Cyan
 npm install
 npm run build:win
 
-$exe = Join-Path $TargetDir "启动\启动.exe"
+$exe = Join-Path $TargetDir "给阿群的生日礼物\启动.exe"
 Write-Host ""
 Write-Host "✓ 完成: $exe" -ForegroundColor Green

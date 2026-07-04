@@ -34,6 +34,8 @@ export const MODEL_PROFILES = {
     rigPositionOffset: { x: 0, y: 0.04, z: -0.06 },
     hasGltfAnimations: true,
     idleClipTimeScale: 1,
+    /** 躯干蒙皮与 idle A-pose 不兼容，强制 bind 待机/打字，由 GLB idle 驱动 */
+    bindOnlyRest: true,
     poseEulerScale: 1,
     look: { ...DEFAULT_LOOK },
     life: {
@@ -46,32 +48,17 @@ export const MODEL_PROFILES = {
     rigTargetHeight: 1.26,
     rigFaceY: 0,
     rigPositionOffset: { x: 0, y: 0.02, z: -0.05 },
-    hasGltfAnimations: false,
+    /** TY 蒙皮与 GLB idle 不兼容：仅手势 clip + 程序化微动 */
+    useGltfIdle: false,
+    hasGltfAnimations: true,
     idleClipTimeScale: 0,
+    /** 与 aqun_rig 一致：bind 待机/打字，骨骼 look 驱动手/体 */
+    bindOnlyRest: true,
     poseEulerScale: 1,
-    look: {
-      bodyFullY: 0.095,
-      bodyFullX: 0.11,
-      bodyIntensity: 0.9,
-      groupBodyY: 0.28,
-      groupBodyX: 0.11,
-      handSmooth: 3.4,
-      torsoSmooth: 8,
-      sideSmooth: 6.2,
-      handBoneSmooth: 2.8,
-      torsoBoneSmooth: 4.8,
-      viewBreathSmooth: 2.8,
-    },
+    look: { ...DEFAULT_LOOK },
     life: {
-      period: 3.8,
-      amp: {
-        shoulder: 0.0035,
-        upper: 0.0045,
-        forearm: 0.006,
-        hand: 0.005,
-        head: 0.004,
-        neck: 0.003,
-      },
+      period: DEFAULT_LIFE.period,
+      amp: { ...DEFAULT_LIFE.amp },
     },
   },
   aqun: {

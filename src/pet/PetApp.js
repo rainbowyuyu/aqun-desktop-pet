@@ -15,6 +15,7 @@ import { InputOverlay } from './InputOverlay.js';
 import { GlobalMouseLook } from './GlobalMouseLook.js';
 
 import { resolveModelFile, normalizeModelId } from './modelRegistry.js';
+import { getModelProfile } from '../scene/modelProfiles.js';
 
 import { BirthdayFx } from './BirthdayFx.js';
 
@@ -80,6 +81,7 @@ export class PetApp {
 
     this.birthdaySecrets = null;
     this._birthdayPreviewRunning = false;
+    this._justPlayedBirthdayIntro = false;
 
 
 
@@ -259,6 +261,7 @@ export class PetApp {
     let birthdayIntro = null;
 
     if (playBirthdayIntro) {
+      window.aqunPet?.setIgnoreMouseEvents?.(false);
       birthdayIntro = new BirthdayIntro({
         root: this.appRoot,
         canvas: this.canvas,
@@ -322,6 +325,8 @@ export class PetApp {
       birthdayIntro.dispose();
       birthdayIntro = null;
       this.birthdayFx.flashRainbowRing();
+      this._syncClickThrough();
+      this._justPlayedBirthdayIntro = true;
     } else {
       gsap.to(this.loadingEl, {
         opacity: 0,
@@ -767,10 +772,11 @@ export class PetApp {
 
   _maybeStartTutorial() {
     if (this.settings.tutorialSeen) return;
-    this._restartTutorial();
+    const delayMs = this._justPlayedBirthdayIntro ? 3500 : 4000;
+    this._restartTutorial({ autoOpenDelayMs: delayMs });
   }
 
-  _restartTutorial() {
+  _restartTutorial(options = {}) {
     this.firstRunTutorial?.dispose?.();
     this.firstRunTutorial = null;
     if (this.settings.tutorialSeen) return;
@@ -782,7 +788,7 @@ export class PetApp {
         window.aqunPet?.updateSettings?.({ tutorialSeen: true }).catch(() => {});
       },
     });
-    this.firstRunTutorial.start();
+    this.firstRunTutorial.start(options);
   }
 
   _onTutorialOpenChange(open) {
@@ -827,7 +833,16 @@ export class PetApp {
       const active = this.settings.petModelId ?? 'aqun_rig';
       if (modelId && modelId !== active) return;
       this.scene.skeletalRig?.applyPoseLibrary?.(library);
-      this.scene.modelLoader?.setIdleClipWeight?.(0);
+      if (this.scene.skeletalRig?.hasPoseLibrary?.()) {
+        const profile = getModelProfile(this.settings.petModelId);
+        if (profile.useGltfIdle === false) {
+          this.scene.modelLoader?.setIdleClipWeight?.(0);
+        } else {
+          this.scene.modelLoader?.setIdleClipWeight?.(profile.bindOnlyRest ? 1 : 0);
+        }
+      } else {
+        this.scene.modelLoader?.setIdleClipWeight?.(1);
+      }
     });
   }
 
@@ -843,7 +858,8 @@ export class PetApp {
       if (!text) return;
 
       this.bubbleContext?.touch();
-      this.bubble.showText(text, { duration: 6.5 });
+      const preview = String(payload?.inputPreview || '').trim();
+      this.bubble.showText(text, { duration: preview.length >= 8 ? 7 : 6.5 });
       this.fsm?.shortcutAction?.('nod');
     });
   }

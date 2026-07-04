@@ -43,7 +43,7 @@ if ($LASTEXITCODE -eq 2) {
 Write-Host "==> npm run build:win..." -ForegroundColor Cyan
 npm run build:win
 
-$exe = Join-Path $Root "启动\启动.exe"
+$exe = Join-Path $Root "给阿群的生日礼物\启动.exe"
 $releaseExe = Join-Path $Root "release\win-unpacked\启动.exe"
 if (Test-Path $exe) {
   Write-Host ""

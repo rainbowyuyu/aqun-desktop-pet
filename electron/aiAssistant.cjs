@@ -1,12 +1,14 @@
 /** 全局按键 → 文本缓冲 → 阿里云通义千问 → 桌面宠物建议气泡 */
 const https = require('https');
+const { clipboard } = require('electron');
 
 const BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
 const MODEL = 'qwen-turbo';
-const IDLE_MS = 2600;
-const MIN_CHARS = 6;
-const COOLDOWN_MS = 18000;
-const MAX_BUFFER = 420;
+const IDLE_MS = 2200;
+const MIN_CHARS = 4;
+const COOLDOWN_MS = 12000;
+const MAX_BUFFER = 480;
+const MAX_EDIT_LOG = 28;
 const REQUEST_TIMEOUT_MS = 12000;
 
 const SHIFT_CHARS = {
@@ -16,12 +18,15 @@ const SHIFT_CHARS = {
 
 let buffer = '';
 let shiftDown = false;
+let ctrlDown = false;
 let capsLock = false;
 let idleTimer = null;
 let lastSuggestAt = 0;
 let pending = false;
 let getSettings = () => ({});
 let sendSuggestion = () => {};
+/** @type {Array<{ op: 'add'|'del'|'paste'|'clear', ch?: string, len?: number }>} */
+let editLog = [];
 
 function resolveApiKey() {
   try {
@@ -40,6 +45,11 @@ function normalizeName(name) {
 function isShiftKey(name) {
   const n = normalizeName(name);
   return n === 'LEFT SHIFT' || n === 'RIGHT SHIFT';
+}
+
+function isCtrlKey(name) {
+  const n = normalizeName(name);
+  return n === 'LEFT CTRL' || n === 'RIGHT CTRL';
 }
 
 function keyToChar(name, shift) {
@@ -79,6 +89,30 @@ function keyToChar(name, shift) {
   return null;
 }
 
+function pushEdit(entry) {
+  editLog.push(entry);
+  if (editLog.length > MAX_EDIT_LOG) {
+    editLog = editLog.slice(-MAX_EDIT_LOG);
+  }
+}
+
+function summarizeEdits() {
+  if (!editLog.length) return '';
+  const tail = editLog.slice(-14);
+  const delCount = tail.filter((e) => e.op === 'del').length;
+  const parts = tail.map((e) => {
+    if (e.op === 'del') return '⌫';
+    if (e.op === 'paste') return `[粘贴${e.len}字]`;
+    if (e.op === 'clear') return '[清空]';
+    if (e.op === 'add' && e.ch === '\n') return '↵';
+    if (e.op === 'add' && e.ch === ' ') return '·';
+    return e.ch || '';
+  });
+  let hint = parts.join('');
+  if (delCount >= 3) hint += '（用户在改错/重写）';
+  return hint;
+}
+
 function trimBuffer() {
   if (buffer.length > MAX_BUFFER) {
     buffer = buffer.slice(-MAX_BUFFER);
@@ -94,7 +128,7 @@ function clearIdleTimer() {
 
 function scheduleAnalyze(force = false) {
   clearIdleTimer();
-  const delay = force ? 120 : IDLE_MS;
+  const delay = force ? 100 : IDLE_MS;
   idleTimer = setTimeout(() => {
     idleTimer = null;
     analyzeBuffer(force).catch(() => {});
@@ -135,13 +169,19 @@ function postJson(url, headers, body) {
 
 function buildPrompt(text, modelId) {
   const pet = modelId === 'ty' || modelId === 'ty_rig' ? 'TY' : '阿群';
-  return [
+  const editHint = summarizeEdits();
+  const lines = [
     `你是桌面宠物「${pet}」，用户正在电脑上打字。`,
-    '根据用户最近输入的文本片段，猜测用户可能要写什么或正在做什么，并给出1～2句简短、口语化的建议或补全思路。',
-    '要求：总字数不超过60字；像朋友聊天；不要说「作为AI」；不要重复用户原文；可以猜测意图并给实用小建议。',
+    '根据用户最近输入的文本片段，猜测用户可能要写什么、正在做什么，并给出 1～2 句简短、口语化的建议或补全思路。',
+    '注意：全局键盘只能捕获物理按键，中文可能是拼音（如 kaixin、kuaile、shengri）；退格表示用户在改字。',
+    '要求：总字数不超过 60 字；像朋友聊天；不要说「作为 AI」；不要重复用户原文；可猜测意图并给实用小建议。',
     '',
-    `用户最近输入：「${text.slice(-280)}」`,
-  ].join('\n');
+    `用户当前输入：「${text.slice(-300)}」`,
+  ];
+  if (editHint) {
+    lines.push(`最近按键轨迹：${editHint}`);
+  }
+  return lines.join('\n');
 }
 
 async function callQwen(apiKey, userText, modelId) {
@@ -157,7 +197,7 @@ async function callQwen(apiKey, userText, modelId) {
         { role: 'system', content: '你是可爱、简洁的桌面宠物助手，只输出给用户看的中文短句，不要 markdown。' },
         { role: 'user', content: buildPrompt(userText, modelId) },
       ],
-      temperature: 0.75,
+      temperature: 0.78,
       max_tokens: 120,
     },
   );
@@ -203,13 +243,22 @@ async function analyzeBuffer(force = false) {
     lastSuggestAt = Date.now();
     sendSuggestion({
       text: result.text,
-      inputPreview: snapshot.slice(-48),
+      inputPreview: snapshot.slice(-56),
     });
   } catch {
     /* 静默失败，不影响打字 */
   } finally {
     pending = false;
   }
+}
+
+function appendText(text) {
+  if (!text) return;
+  const chunk = String(text).replace(/\r\n/g, '\n').slice(0, 240);
+  buffer += chunk;
+  pushEdit({ op: 'paste', len: chunk.length });
+  trimBuffer();
+  scheduleAnalyze(false);
 }
 
 function onKeyEvent(payload) {
@@ -222,6 +271,10 @@ function onKeyEvent(payload) {
     shiftDown = payload.type === 'down';
     return;
   }
+  if (isCtrlKey(name)) {
+    ctrlDown = payload.type === 'down';
+    return;
+  }
   if (payload.type !== 'down') return;
 
   const n = normalizeName(name);
@@ -229,17 +282,36 @@ function onKeyEvent(payload) {
     capsLock = !capsLock;
     return;
   }
+
+  if (ctrlDown && n === 'V') {
+    try {
+      appendText(clipboard.readText());
+    } catch {
+      /* ignore */
+    }
+    return;
+  }
+
   if (n === 'BACKSPACE') {
-    buffer = buffer.slice(0, -1);
+    if (buffer.length > 0) {
+      buffer = buffer.slice(0, -1);
+      pushEdit({ op: 'del' });
+    }
     scheduleAnalyze(false);
     return;
   }
   if (n === 'DELETE') {
+    if (buffer.length > 0) {
+      buffer = buffer.slice(0, -1);
+      pushEdit({ op: 'del' });
+    }
     scheduleAnalyze(false);
     return;
   }
   if (n === 'ESCAPE') {
     buffer = '';
+    editLog = [];
+    pushEdit({ op: 'clear' });
     clearIdleTimer();
     return;
   }
@@ -253,6 +325,7 @@ function onKeyEvent(payload) {
   }
 
   buffer += ch;
+  pushEdit({ op: 'add', ch });
   trimBuffer();
   scheduleAnalyze(false);
 }
@@ -264,6 +337,7 @@ function configure({ getSettingsFn, onSuggestion }) {
 
 function resetBuffer() {
   buffer = '';
+  editLog = [];
   clearIdleTimer();
 }
 

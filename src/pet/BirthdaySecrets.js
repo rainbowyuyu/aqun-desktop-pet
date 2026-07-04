@@ -89,27 +89,32 @@ export class BirthdaySecrets {
   _onSecretKey(id) {
     if (this.getSettingsPanelOpen()) return;
 
-    const reactions = {
-      happy: () => {
-        this.fx.burstConfetti({ count: 80, duration: 3.4 });
-        this.fsm.spin();
-      },
-      aqun: () => {
-        this.fx.burstConfetti({ count: 40, duration: 2.4 });
-        this.fsm.wave();
-      },
-      bday: () => {
-        this.fx.burstConfetti({ count: 52, duration: 2.8 });
-        this.fx.flashRainbowRing();
-        this.fsm.wave();
-      },
-      love: () => {
-        this.fx.burstConfetti({ count: 44, duration: 2.6 });
-        this.fsm.wave();
-      },
+    const celebrate = {
+      happy: { count: 80, duration: 3.4, spin: true },
+      birthday: { count: 88, duration: 3.6, ring: true, wave: true },
+      bday: { count: 52, duration: 2.8, ring: true, wave: true },
+      love: { count: 44, duration: 2.6, wave: true },
+      kaixin: { count: 72, duration: 3.2, spin: true },
+      kuaile: { count: 72, duration: 3.2, spin: true },
+      shengri: { count: 96, duration: 3.8, ring: true, wave: true },
+      xingfu: { count: 56, duration: 3, wave: true },
+      party: { count: 64, duration: 3.2, spin: true },
+      cake: { count: 48, duration: 2.8, wave: true },
+      gift: { count: 52, duration: 2.8, wave: true },
+      aqun: { count: 40, duration: 2.4, wave: true },
+      ty: { count: 48, duration: 2.6, wave: true },
+      kx: { count: 56, duration: 2.8, spin: true },
+      kl: { count: 56, duration: 2.8, spin: true },
+      sr: { count: 88, duration: 3.6, ring: true, wave: true },
+      xf: { count: 48, duration: 2.6, wave: true },
     };
 
-    reactions[id]?.();
+    const fx = celebrate[id] || { count: 48, duration: 2.8, wave: true };
+    this.fx.burstConfetti({ count: fx.count, duration: fx.duration });
+    if (fx.ring) this.fx.flashRainbowRing();
+    if (fx.spin) this.fsm.spin();
+    else if (fx.wave) this.fsm.wave();
+
     this.bubble.showText(randomSecret(id));
   }
 }
