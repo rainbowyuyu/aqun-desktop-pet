@@ -2,6 +2,30 @@
 const fs = require('fs');
 const path = require('path');
 
+const ICON_PNG_SIZE = 512;
+
+async function writeIconPng(src, dest) {
+  const sharp = require('sharp');
+  const meta = await sharp(src).metadata();
+  const maxDim = Math.max(meta.width || 0, meta.height || 0);
+
+  if (maxDim >= ICON_PNG_SIZE) {
+    await sharp(src).png().toFile(dest);
+    console.log(`icon png ready: ${dest} (${meta.width}x${meta.height})`);
+    return dest;
+  }
+
+  await sharp(src)
+    .resize(ICON_PNG_SIZE, ICON_PNG_SIZE, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .png()
+    .toFile(dest);
+  console.log(`icon png upscaled to ${ICON_PNG_SIZE}x${ICON_PNG_SIZE}: ${dest}`);
+  return dest;
+}
+
 async function main() {
   const root = path.join(__dirname, '..');
   const src = path.join(root, 'public/logo.png');
@@ -15,8 +39,7 @@ async function main() {
   }
 
   fs.mkdirSync(buildDir, { recursive: true });
-  fs.copyFileSync(src, pngOut);
-  console.log('icon png ready:', pngOut);
+  const iconSrc = await writeIconPng(src, pngOut);
 
   if (process.platform !== 'win32') return;
 
@@ -29,7 +52,7 @@ async function main() {
   }
 
   try {
-    const buf = await pngToIco(src);
+    const buf = await pngToIco(iconSrc);
     fs.writeFileSync(icoOut, buf);
     console.log('icon generated:', icoOut);
   } catch (err) {
