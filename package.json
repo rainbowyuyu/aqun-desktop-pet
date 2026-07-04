@@ -78,7 +78,6 @@
       ],
       "icon": "build/icon.png",
       "category": "public.app-category.entertainment",
-      "identity": null,
       "gatekeeperAssess": false,
       "hardenedRuntime": false
     },

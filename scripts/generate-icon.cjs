@@ -16,6 +16,9 @@ async function main() {
 
   fs.mkdirSync(buildDir, { recursive: true });
   fs.copyFileSync(src, pngOut);
+  console.log('icon png ready:', pngOut);
+
+  if (process.platform !== 'win32') return;
 
   let pngToIco;
   try {
@@ -25,9 +28,13 @@ async function main() {
     return;
   }
 
-  const buf = await pngToIco(src);
-  fs.writeFileSync(icoOut, buf);
-  console.log('icon generated:', icoOut);
+  try {
+    const buf = await pngToIco(src);
+    fs.writeFileSync(icoOut, buf);
+    console.log('icon generated:', icoOut);
+  } catch (err) {
+    console.warn('png-to-ico failed, skipping .ico generation:', err.message);
+  }
 }
 
 main().catch((err) => {
