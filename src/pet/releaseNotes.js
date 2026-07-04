@@ -1,6 +1,6 @@
 /** 应用版本与功能说明 */
-export const APP_VERSION = 'v2.4.0';
-export const APP_RELEASE_DATE = '2026-07-03';
+export const APP_VERSION = 'v2.4.1';
+export const APP_RELEASE_DATE = '2026-07-04';
 export const APP_YEAR = '2026';
 export const APP_VERSION_LABEL = `${APP_VERSION} · ${APP_RELEASE_DATE}`;
 export const FEATURE_SUMMARY = '绑骨模型 · 姿势编辑 · 日历 · 工具 · 站点';
@@ -104,6 +104,19 @@ export const FEATURE_CATALOG = [
 
 /** @type {ReleaseNote[]} 从新到旧 */
 export const RELEASE_NOTES = [
+  {
+    version: 'v2.4.1',
+    date: '2026-07-04',
+    title: 'Mac 版 · 首次启动生日动画',
+    sections: [{
+      title: '更新',
+      items: [
+        'Mac 便携版打包与 GitHub Release 自动发布',
+        '生日祝福动画改为首次启动播放（不再限定 7 月 4 日）',
+        '祝福信文案调整为通用心意主题',
+      ],
+    }],
+  },
   {
     version: 'v2.4.0',
     date: '2026-07-03',
