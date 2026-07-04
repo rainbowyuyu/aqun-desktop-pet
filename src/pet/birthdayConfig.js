@@ -21,8 +21,7 @@ export function isBirthdayToday(date = new Date()) {
   return date.getMonth() + 1 === BIRTHDAY.month && date.getDate() === BIRTHDAY.day;
 }
 
-/** 每年生日当天首次启动时播放开箱动画 */
-export function shouldPlayBirthdayIntro(date = new Date(), lastIntroYear = null) {
-  if (!isBirthdayToday(date)) return false;
-  return lastIntroYear !== date.getFullYear();
+/** 首次启动时播放生日祝福动画（终生仅一次） */
+export function shouldPlayBirthdayIntro(_date = new Date(), lastIntroYear = null) {
+  return lastIntroYear == null;
 }

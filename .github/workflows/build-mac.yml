@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
 
       - name: Prepare AI secrets
@@ -27,11 +27,13 @@ jobs:
         run: |
           if [ -n "$AI_API_KEY" ]; then
             node -e "const fs=require('fs'); fs.writeFileSync('electron/aiSecrets.local.cjs', 'module.exports = { apiKey: ' + JSON.stringify(process.env.AI_API_KEY) + ' };');"
+            echo "[ai] 已从 DASHSCOPE_API_KEY Secret 写入 API Key"
           elif [ -f electron/aiSecrets.local.cjs ]; then
-            echo "Using checked-out aiSecrets.local.cjs"
+            echo "[ai] 使用仓库中的 aiSecrets.local.cjs"
           else
             cp electron/aiSecrets.local.cjs.example electron/aiSecrets.local.cjs
-            echo "::warning::未配置 DASHSCOPE_API_KEY，使用 example 占位文件"
+            echo "[ai] 未设置 DASHSCOPE_API_KEY Secret，AI 功能在打包产物中不可用"
+            echo "[ai] 请在仓库 Settings → Secrets → Actions 添加 DASHSCOPE_API_KEY"
           fi
         shell: bash
 
