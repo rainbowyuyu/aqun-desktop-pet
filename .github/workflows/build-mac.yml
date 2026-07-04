@@ -8,6 +8,9 @@ on:
       - '**.md'
       - '.github/**'
 
+permissions:
+  contents: write
+
 jobs:
   build-mac:
     runs-on: macos-latest
@@ -20,6 +23,14 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+
+      - name: Read version
+        id: meta
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=mac-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "asset=aqun-desktop-pet-mac-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
 
       - name: Prepare AI secrets
         env:
@@ -47,11 +58,40 @@ jobs:
 
       - name: Archive portable bundle
         run: |
-          zip -r aqun-desktop-pet-mac.zip "给阿群的生日礼物" "给阿群的生日礼物.command"
+          zip -r "${{ steps.meta.outputs.asset }}" "给阿群的生日礼物" "给阿群的生日礼物.command"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.meta.outputs.tag }}"
+          ASSET="${{ steps.meta.outputs.asset }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+          NOTES="Mac 便携版自动构建（v${VERSION}）。
+
+          **使用说明**
+          1. 下载 \`${ASSET}\` 并解压
+          2. 双击 \`给阿群的生日礼物/启动.app\`（或 \`给阿群的生日礼物.command\`）
+          3. 首次运行若被 Gatekeeper 拦截：右键 → 打开
+          4. 键盘 HUD 需在 **系统设置 → 隐私与安全性 → 辅助功能** 中授权「启动」
+
+          构建提交：${{ github.sha }}
+          [查看本次工作流](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --clobber
+            gh release edit "$TAG" --notes "$NOTES"
+            echo "Updated release: $TAG"
+          else
+            gh release create "$TAG" "$ASSET" \
+              --title "Mac 便携版 v${VERSION}" \
+              --notes "$NOTES"
+            echo "Created release: $TAG"
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: aqun-desktop-pet-mac
-          path: aqun-desktop-pet-mac.zip
+          path: ${{ steps.meta.outputs.asset }}
           retention-days: 14

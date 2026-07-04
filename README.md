@@ -44,6 +44,8 @@ npm run build:mac
 
 未签名的 `.app` 首次打开时，可 **右键 → 打开** 绕过 Gatekeeper 提示。
 
+**直接下载（推荐）：** 在 [GitHub Releases](https://github.com/rainbowyuyu/aqun-desktop-pet/releases) 找到 `Mac 便携版 v*`（标签 `mac-v2.4.0` 等），下载 `aqun-desktop-pet-mac-v*.zip` 即可，比 Actions Artifacts 更稳定、更快。
+
 ---
 
 ## 首次从 GitHub 获取
