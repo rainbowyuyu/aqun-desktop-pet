@@ -68,6 +68,17 @@ function normalizeKeyName(name) {
     LEFTMETA: 'LEFT META',
     RIGHTMETA: 'RIGHT META',
     RETURN: 'ENTER',
+    COMMAND: 'LEFT META',
+    CMD: 'LEFT META',
+    'LEFT COMMAND': 'LEFT META',
+    'RIGHT COMMAND': 'RIGHT META',
+    'LEFT CMD': 'LEFT META',
+    'RIGHT CMD': 'RIGHT META',
+    OPTION: 'LEFT ALT',
+    'LEFT OPTION': 'LEFT ALT',
+    'RIGHT OPTION': 'RIGHT ALT',
+    DELETE: 'BACKSPACE',
+    FORWARDDELETE: 'DELETE',
   };
   return aliases[u] || u;
 }
@@ -105,7 +116,8 @@ function startWinPoll() {
 
 function startNodeGlobalListener() {
   const { GlobalKeyboardListener } = require('node-global-key-listener');
-  listener = new GlobalKeyboardListener({ windows: { onError: () => {} } });
+  const options = process.platform === 'win32' ? { windows: { onError: () => {} } } : {};
+  listener = new GlobalKeyboardListener(options);
 
   listener.addListener((event) => {
     const raw = event.name || '';

@@ -18,14 +18,19 @@ new Promise(async (resolve, reject) => {
       opts,
     );
   });
-  const msg = (e) =>
-    e.code === 1
-      ? '定位被拒绝，请在 Windows 设置 → 隐私和安全性 → 位置 中开启'
+  const msg = (e) => {
+    const denied =
+      process.platform === 'darwin'
+        ? '定位被拒绝，请在 系统设置 → 隐私与安全性 → 定位服务 中开启'
+        : '定位被拒绝，请在 Windows 设置 → 隐私和安全性 → 位置 中开启';
+    return e.code === 1
+      ? denied
       : e.code === 2
         ? '暂时无法获取位置'
         : e.code === 3
           ? '定位超时，请稍后重试'
           : '定位失败';
+  };
   try {
     resolve(await tryGet({ enableHighAccuracy: false, timeout: 12000, maximumAge: 900000 }));
   } catch (e1) {

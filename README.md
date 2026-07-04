@@ -1,6 +1,6 @@
 # 桌面模型 · aqun-desktop-pet
 
-Windows 透明悬浮 3D 桌面宠物：绑骨模型、眼神跟随、键盘反馈、控制中心、日历与姿势编辑器。
+Windows / macOS 透明悬浮 3D 桌面宠物：绑骨模型、眼神跟随、键盘反馈、控制中心、日历与姿势编辑器。
 
 **当前版本：** v2.4.0  
 **GitHub：** https://github.com/rainbowyuyu/aqun-desktop-pet
@@ -17,6 +17,8 @@ npm run dev
 
 ## 构建
 
+### Windows
+
 ```bash
 npm run build:win
 # 输出：
@@ -26,11 +28,29 @@ npm run build:win
 
 打包前请关闭正在运行的桌宠或 Electron 进程，否则可能因文件占用失败。
 
+### macOS
+
+```bash
+npm run build:mac
+# 输出：
+#   release/mac-arm64/启动.app   （Apple Silicon，目录名随架构可能为 mac / mac-x64）
+#   给阿群的生日礼物/启动.app     ← 项目根目录便携版
+#   给阿群的生日礼物.command      ← 双击启动脚本
+```
+
+**注意：** Mac 版必须在 **macOS 本机** 打包（Windows 无法交叉编译 `.app`）。
+
+首次运行若键盘 HUD / 全局快捷键无效，请在 **系统设置 → 隐私与安全性 → 辅助功能** 中允许「启动」。
+
+未签名的 `.app` 首次打开时，可 **右键 → 打开** 绕过 Gatekeeper 提示。
+
 ---
 
 ## 首次从 GitHub 获取
 
 ### 方式 A：克隆已有目录后更新
+
+**Windows**
 
 ```powershell
 git clone https://github.com/rainbowyuyu/aqun-desktop-pet.git
@@ -39,10 +59,28 @@ npm install
 npm run build:win
 ```
 
+**macOS**
+
+```bash
+git clone https://github.com/rainbowyuyu/aqun-desktop-pet.git
+cd aqun-desktop-pet
+npm install
+npm run build:mac
+```
+
 ### 方式 B：一键脚本（新目录）
+
+**Windows**
 
 ```powershell
 .\scripts\setup-from-github.ps1 -TargetDir "D:\apps\aqun-desktop-pet"
+```
+
+**macOS**
+
+```bash
+chmod +x scripts/pull-and-build-mac.sh
+./scripts/pull-and-build-mac.sh
 ```
 
 ---
@@ -66,6 +104,8 @@ npm run check-update
 
 在已 clone 的仓库目录中：
 
+**Windows**
+
 ```powershell
 npm run update:build
 ```
@@ -78,10 +118,10 @@ npm run update:build
 
 脚本会：结束运行中的 exe → `git pull` → `npm install` → `npm run build:win`
 
-可选参数：
+**macOS**
 
-```powershell
-.\scripts\pull-and-build.ps1 -Branch main -SkipKill
+```bash
+./scripts/pull-and-build-mac.sh
 ```
 
 ---
@@ -129,6 +169,7 @@ gh repo create rainbowyuyu/aqun-desktop-pet --public --source=. --remote=origin 
 
 ## 系统要求
 
-- Windows 10/11 x64  
+- **Windows：** Windows 10/11 x64  
+- **macOS：** macOS 11+（Apple Silicon 或 Intel）  
 - Node.js 18+（开发/打包）  
 - Git（拉取更新）

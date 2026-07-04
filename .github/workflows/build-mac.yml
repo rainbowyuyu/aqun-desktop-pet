@@ -1,0 +1,53 @@
+name: Build macOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Prepare AI secrets
+        env:
+          AI_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+        run: |
+          if [ -n "$AI_API_KEY" ]; then
+            node -e "const fs=require('fs'); fs.writeFileSync('electron/aiSecrets.local.cjs', 'module.exports = { apiKey: ' + JSON.stringify(process.env.AI_API_KEY) + ' };');"
+          elif [ -f electron/aiSecrets.local.cjs ]; then
+            echo "Using checked-out aiSecrets.local.cjs"
+          else
+            cp electron/aiSecrets.local.cjs.example electron/aiSecrets.local.cjs
+            echo "::warning::未配置 DASHSCOPE_API_KEY，使用 example 占位文件"
+          fi
+        shell: bash
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS portable
+        run: npm run build:mac
+
+      - name: Archive portable bundle
+        run: |
+          zip -r aqun-desktop-pet-mac.zip "给阿群的生日礼物" "给阿群的生日礼物.command"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aqun-desktop-pet-mac
+          path: aqun-desktop-pet-mac.zip
+          retention-days: 14

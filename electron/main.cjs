@@ -18,6 +18,8 @@ const {
 
   session,
 
+  systemPreferences,
+
 } = require('electron');
 
 const path = require('path');
@@ -333,17 +335,20 @@ function applyResetScope(scope) {
 
 function resolveIcon() {
 
-  const candidates = [
+  const isMac = process.platform === 'darwin';
 
-    path.join(__dirname, '../build/icon.ico'),
-
-    path.join(__dirname, '../build/icon.png'),
-
-    path.join(__dirname, '../public/logo.png'),
-
-    path.join(process.resourcesPath, 'logo.png'),
-
-  ];
+  const candidates = isMac
+    ? [
+        path.join(__dirname, '../build/icon.png'),
+        path.join(__dirname, '../public/logo.png'),
+        path.join(process.resourcesPath, 'logo.png'),
+      ]
+    : [
+        path.join(__dirname, '../build/icon.ico'),
+        path.join(__dirname, '../build/icon.png'),
+        path.join(__dirname, '../public/logo.png'),
+        path.join(process.resourcesPath, 'logo.png'),
+      ];
 
   for (const p of candidates) {
 
@@ -976,6 +981,19 @@ function createTray() {
 
 
 
+function requestMacAccessibilityIfNeeded() {
+  if (process.platform !== 'darwin') return;
+  setTimeout(() => {
+    try {
+      if (!systemPreferences.isTrustedAccessibilityClient(false)) {
+        systemPreferences.isTrustedAccessibilityClient(true);
+      }
+    } catch (err) {
+      console.warn('[mac] 辅助功能权限请求失败:', err.message);
+    }
+  }, 1500);
+}
+
 function setupKeyboardBridge() {
 
   aiAssistant.configure({
@@ -1526,12 +1544,21 @@ app.whenReady().then(() => {
   setupIpc();
 
   setupKeyboardBridge();
+  requestMacAccessibilityIfNeeded();
   startGlobalMouseTracker(() => mainWindow);
   refreshActionShortcuts();
 });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('activate', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+    return;
+  }
+  if (!mainWindow.isVisible()) mainWindow.show();
 });
 
 app.on('before-quit', () => {

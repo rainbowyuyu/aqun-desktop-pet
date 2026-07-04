@@ -1,6 +1,6 @@
 /** 主进程轮询全局鼠标位置，供模型视线跟踪 */
 const { screen } = require('electron');
-const { readButtons } = require('./mouseButtonsWin.cjs');
+const { readButtons } = require('./mouseButtons.cjs');
 
 const POLL_MS = 28;
 let timer = null;

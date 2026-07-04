@@ -1,4 +1,4 @@
-/** 从 aq logo 生成 Windows ico 与 png 图标 */
+/** 从 aq logo 生成 Windows .ico 与 macOS/通用 .png 图标 */
 const fs = require('fs');
 const path = require('path');
 

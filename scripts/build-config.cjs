@@ -7,4 +7,8 @@ module.exports = {
   STAGE_LAUNCHER_BAT: '给阿群的生日礼物.bat',
   LEGACY_STAGE_DIRS: ['启动'],
   LEGACY_LAUNCHER_BATS: ['启动.bat'],
+
+  MAC_APP_NAME: '启动.app',
+  MAC_RELEASE_DIR: 'release',
+  STAGE_LAUNCHER_COMMAND: '给阿群的生日礼物.command',
 };

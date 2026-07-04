@@ -20,6 +20,7 @@
     "build:icon": "node scripts/generate-icon.cjs",
     "start": "electron .",
     "build:win": "node scripts/generate-icon.cjs && node scripts/ensure-ai-secrets.mjs && node scripts/generate-models-manifest.mjs && vite build && electron-builder --win --dir && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
+    "build:mac": "node scripts/generate-icon.cjs && node scripts/ensure-ai-secrets.mjs && node scripts/generate-models-manifest.mjs && vite build && electron-builder --mac --dir && node scripts/stage-portable-mac.cjs",
     "build:installer": "node scripts/generate-icon.cjs && node scripts/ensure-ai-secrets.mjs && node scripts/generate-models-manifest.mjs && vite build && electron-builder --win && node scripts/patch-exe-icon.cjs && node scripts/stage-portable.cjs && node scripts/patch-exe-icon.cjs",
     "check-update": "node scripts/check-update.mjs",
     "update:build": "powershell -ExecutionPolicy Bypass -File scripts/pull-and-build.ps1"
@@ -70,6 +71,16 @@
       ],
       "icon": "build/icon.ico",
       "signAndEditExecutable": false
+    },
+    "mac": {
+      "target": [
+        "dir"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.entertainment",
+      "identity": null,
+      "gatekeeperAssess": false,
+      "hardenedRuntime": false
     },
     "nsis": {
       "oneClick": false,
