@@ -7,6 +7,10 @@ on:
     paths-ignore:
       - '**.md'
 
+concurrency:
+  group: build-mac-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -43,7 +47,6 @@ jobs:
           else
             cp electron/aiSecrets.local.cjs.example electron/aiSecrets.local.cjs
             echo "[ai] 未设置 DASHSCOPE_API_KEY Secret，AI 功能在打包产物中不可用"
-            echo "[ai] 请在仓库 Settings → Secrets → Actions 添加 DASHSCOPE_API_KEY"
           fi
         shell: bash
 
@@ -59,6 +62,13 @@ jobs:
         run: |
           zip -r "${{ steps.meta.outputs.asset }}" "给阿群的生日礼物" "给阿群的生日礼物.command"
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: aqun-desktop-pet-mac
+          path: ${{ steps.meta.outputs.asset }}
+          retention-days: 14
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -66,7 +76,9 @@ jobs:
           TAG="${{ steps.meta.outputs.tag }}"
           ASSET="${{ steps.meta.outputs.asset }}"
           VERSION="${{ steps.meta.outputs.version }}"
-          NOTES="Mac 便携版自动构建（v${VERSION}）。
+
+          cat > release-notes.md <<EOF
+          Mac 便携版自动构建（v${VERSION}）。
 
           **使用说明**
           1. 下载 \`${ASSET}\` 并解压
@@ -74,23 +86,28 @@ jobs:
           3. 首次运行若被 Gatekeeper 拦截：右键 → 打开
           4. 键盘 HUD 需在 **系统设置 → 隐私与安全性 → 辅助功能** 中授权「启动」
 
-          构建提交：${{ github.sha }}
-          [查看本次工作流](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          构建提交：${GITHUB_SHA}
+          [查看本次工作流](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})
+          EOF
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$ASSET" --clobber
-            gh release edit "$TAG" --notes "$NOTES"
-            echo "Updated release: $TAG"
+            echo "Release $TAG exists, uploading asset..."
           else
-            gh release create "$TAG" "$ASSET" \
+            gh release create "$TAG" \
               --title "Mac 便携版 v${VERSION}" \
-              --notes "$NOTES"
+              --notes-file release-notes.md \
+              --target "$GITHUB_SHA"
             echo "Created release: $TAG"
           fi
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: aqun-desktop-pet-mac
-          path: ${{ steps.meta.outputs.asset }}
-          retention-days: 14
+          for i in 1 2 3; do
+            if gh release upload "$TAG" "$ASSET" --clobber; then
+              echo "Asset uploaded on attempt $i"
+              break
+            fi
+            echo "Upload attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+
+          gh release edit "$TAG" --notes-file release-notes.md
+          echo "Release ready: $TAG"
